@@ -42,7 +42,7 @@ final class UserFood: Model, Content {
     init(_ form: UserFoodCreateForm, for db: Database) async throws {
         
         do {
-            try let _ = form.validate()
+            let _ = try form.validate()
         } catch let formError as UserFoodDataError {
             throw UserFoodCreateError.formError(formError)
         }
