@@ -8,7 +8,7 @@ struct UserFoodController: RouteCollection {
         foods.post(use: create)
     }
     
-    func create(req: Request) async throws -> HTTPStatus {
+    func create(req: Request) async throws -> String {
         let createForm = try req.content.decode(UserFoodCreateForm.self)
         let userFood = try await UserFood(createForm, for: req.db)
         try await userFood.save(on: req.db)
@@ -19,7 +19,7 @@ struct UserFoodController: RouteCollection {
             let barcode = Barcode(barcode: barcode, userFoodId: userFoodId)
             try await barcode.save(on: req.db)
         }
-        return .ok
+        return userFood.id?.uuidString ?? ""
     }
 }
 
