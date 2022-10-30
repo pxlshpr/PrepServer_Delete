@@ -6,35 +6,31 @@ final class UserFood: Model, Content {
     static let schema = "user_foods"
     
     @ID(key: .id) var id: UUID?
-    
-    @Field(key: "name") var name: String
-    @Field(key: "emoji") var emoji: String
-    @OptionalField(key: "detail") var detail: String?
-    @OptionalField(key: "brand") var brand: String?
-
-    @Field(key: "amount") var amount: FoodValue
-    @Field(key: "serving") var serving: FoodValue?
-    @Field(key: "nutrients") var nutrients: FoodNutrients
-    @Field(key: "sizes") var sizes: [FoodSize]
-    @OptionalField(key: "density") var density: FoodDensity?
-   
-    @OptionalField(key: "link_url") var linkUrl: String?
-    @OptionalField(key: "prefilled_url") var prefilledUrl: String?
-    @OptionalField(key: "image_ids") var imageIds: [UUID]?
-
-    @Field(key: "status") var status: UserFoodPublishStatus
+    @Parent(key: "user_id") var user: User
     @OptionalParent(key: "spawned_user_food_id") var spawnedUserFood: UserFood?
     @OptionalParent(key: "spawned_database_food_id") var spawnedDatabaseFood: DatabaseFood?
-    @Field(key: "changes") var changes: [UserFoodChange]
-    @Field(key: "use_count_others") var numberOfUsesByOthers: Int32
-    @Field(key: "use_count_owner") var numberOfUsesByOwner: Int32
-
     @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
     @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
     @Timestamp(key: "deleted_at", on: .delete, format: .unix) var deletedAt: Date?
     @OptionalField(key: "deleted_for_owner_at") var deletedForOwnerAt: Double?
 
-    @Parent(key: "user_id") var user: User
+    @Field(key: "food_type") var foodType: FoodType
+    @Field(key: "name") var name: String
+    @Field(key: "emoji") var emoji: String
+    @Field(key: "amount") var amount: FoodValue
+    @Field(key: "nutrients") var nutrients: FoodNutrients
+    @Field(key: "sizes") var sizes: [FoodSize]
+    @Field(key: "publish_status") var publishStatus: UserFoodPublishStatus
+    @Field(key: "number_of_uses") var numberOfUses: Int32
+    @Field(key: "changes") var changes: [UserFoodChange]
+    @OptionalField(key: "serving") var serving: FoodValue?
+    @OptionalField(key: "detail") var detail: String?
+    @OptionalField(key: "brand") var brand: String?
+    @OptionalField(key: "density") var density: FoodDensity?
+    @OptionalField(key: "link_url") var linkUrl: String?
+    @OptionalField(key: "prefilled_url") var prefilledUrl: String?
+    @OptionalField(key: "image_ids") var imageIds: [UUID]?
+
     @Children(for: \.$userFood) var barcodes: [Barcode]
     
     init() { }
@@ -76,15 +72,8 @@ final class UserFood: Model, Content {
             throw UserCreateError.unableToCreateOrFetchUserForCloudKitId
         }
         
-        /// **Deprecated**
-//        /// Make sure we don't have any repeating barcodes
-//        /// Validate each barcode
-//        for barcode in form.info.barcodes {
-//            /// Validate it first
-//            try barcode.validate()
-//        }
+        self.foodType = .rawFood
         
-        //MARK: Now we can create the UserFood
         self.id = form.id
         self.name = form.name
         self.emoji = form.emoji
@@ -98,13 +87,12 @@ final class UserFood: Model, Content {
         self.linkUrl = form.info.linkUrl
         self.prefilledUrl = form.info.prefilledUrl
         self.imageIds = form.info.imageIds
-        self.status = form.publishStatus
+        self.publishStatus = form.publishStatus
         
         self.$user.id = userId
         
         self.changes = []
-        self.numberOfUsesByOwner = 0
-        self.numberOfUsesByOthers = 0
+        self.numberOfUses = 0
         
         self.createdAt = Date()
         self.updatedAt = Date()
