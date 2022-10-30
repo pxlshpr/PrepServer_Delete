@@ -86,6 +86,7 @@ final class UserFood: Model, Content {
         }
         
         //MARK: Now we can create the UserFood
+        self.id = form.id
         self.name = form.name
         self.emoji = form.emoji
         self.detail = form.detail
