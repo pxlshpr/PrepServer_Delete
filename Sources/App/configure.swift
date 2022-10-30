@@ -5,17 +5,24 @@ import Vapor
 // configures your application
 public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     app.databases.use(.postgres(
         hostname: Environment.get("DATABASE_HOST") ?? "localhost",
         port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? PostgresConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-        password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-        database: Environment.get("DATABASE_NAME") ?? "vapor_database"
+        username: Environment.get("DATABASE_USERNAME") ?? "pxlshpr",
+        password: Environment.get("DATABASE_PASSWORD") ?? "Ch1ll0ut",
+        database: Environment.get("DATABASE_NAME") ?? "prep"
     ), as: .psql)
 
-    app.migrations.add(CreateTodo())
+    app.migrations.add(CreateUser())
+    app.migrations.add(CreateDatabaseFood())
+    app.migrations.add(CreateUserFood())
+    app.migrations.add(CreateBarcode())
+    app.migrations.add(CreateTokenAward())
+    app.migrations.add(CreateTokenRedemption())
+
+    app.http.server.configuration.port = 8083
 
     // register routes
     try routes(app)
