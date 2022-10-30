@@ -16,7 +16,7 @@ public func configure(_ app: Application) throws {
     ), as: .psql)
 
     app.migrations.add(CreateUser())
-    app.migrations.add(CreateDatabaseFood())
+    app.migrations.add(CreatePresetFood())
     app.migrations.add(CreateUserFood())
     app.migrations.add(CreateBarcode())
     app.migrations.add(CreateTokenAward())

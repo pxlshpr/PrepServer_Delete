@@ -1,39 +1,31 @@
 import Fluent
 
-struct CreateUserFood: AsyncMigration {
+struct CreatePresetFood: AsyncMigration {
     func prepare(on database: Database) async throws {
-        try await database.schema("user_foods")
+        try await database.schema("preset_foods")
             .id()
-            .field("user_id", .uuid, .references(User.schema, .id), .required)
-            .field("spawned_user_food_id", .uuid, .references(UserFood.schema, .id))
-            .field("spawned_database_food_id", .uuid, .references(PresetFood.schema, .id))
             .field("created_at", .double)
             .field("updated_at", .double)
             .field("deleted_at", .double)
-            .field("deleted_for_owner_at", .double)
 
-            .field("food_type", .int16, .required)
             .field("name", .string, .required)
             .field("emoji", .string, .required)
             .field("amount", .json, .required)
             .field("nutrients", .json, .required)
             .field("sizes", .array(of: .json), .required)
-            .field("publish_status", .int16, .required)
             .field("number_of_uses", .int32, .required)
-            .field("changes", .array(of: .json), .required)
+            .field("dataset", .int16, .required)
 
             .field("serving", .json)
             .field("detail", .string)
             .field("brand", .string)
             .field("density", .json)
-            .field("link_url", .string)
-            .field("prefilled_url", .string)
-            .field("image_ids", .array(of: .uuid))
+            .field("dataset_food_id", .string)
 
             .create()
     }
     
     func revert(on database: Database) async throws {
-        try await database.schema("user_foods").delete()
+        try await database.schema("preset_foods").delete()
     }
 }

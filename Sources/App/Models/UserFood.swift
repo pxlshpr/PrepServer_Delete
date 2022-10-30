@@ -8,7 +8,7 @@ final class UserFood: Model, Content {
     @ID(key: .id) var id: UUID?
     @Parent(key: "user_id") var user: User
     @OptionalParent(key: "spawned_user_food_id") var spawnedUserFood: UserFood?
-    @OptionalParent(key: "spawned_database_food_id") var spawnedDatabaseFood: DatabaseFood?
+    @OptionalParent(key: "spawned_preset_food_id") var spawnedPresetFood: PresetFood?
     @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
     @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
     @Timestamp(key: "deleted_at", on: .delete, format: .unix) var deletedAt: Date?
@@ -53,18 +53,18 @@ final class UserFood: Model, Content {
             spawnedUserFood = nil
         }
 
-        let spawnedDatabaseFood: DatabaseFood?
-        if let databaseFoodId = form.info.spawnedDatabaseFoodId {
-            guard let databaseFood = try await DatabaseFood.find(databaseFoodId, on: db) else {
-                throw UserFoodDataError.nonExistentSpawnedDatabaseFood
+        let spawnedPresetFood: PresetFood?
+        if let presetFoodId = form.info.spawnedPresetFoodId {
+            guard let presetFood = try await PresetFood.find(presetFoodId, on: db) else {
+                throw UserFoodDataError.nonExistentSpawnedPresetFood
             }
-            spawnedDatabaseFood = databaseFood
+            spawnedPresetFood = presetFood
         } else {
-            spawnedDatabaseFood = nil
+            spawnedPresetFood = nil
         }
         
-        guard !(spawnedUserFood != nil && spawnedDatabaseFood != nil) else {
-            throw UserFoodDataError.bothSpawnedUserAndDatabaseFoodsWereProvided
+        guard !(spawnedUserFood != nil && spawnedPresetFood != nil) else {
+            throw UserFoodDataError.bothSpawnedUserFoodAndPresetFoodWasProvided
         }
 
         let user = try await UserController.createOrFetchUser(cloudKitId: form.info.cloudKitId, in: db)
@@ -72,29 +72,29 @@ final class UserFood: Model, Content {
             throw UserCreateError.unableToCreateOrFetchUserForCloudKitId
         }
         
-        self.foodType = .rawFood
-        
         self.id = form.id
+        self.$user.id = userId
+        self.$spawnedUserFood.id = spawnedUserFood?.id
+        self.$spawnedPresetFood.id = spawnedPresetFood?.id
+        self.createdAt = Date()
+        self.updatedAt = Date()
+
+        self.foodType = .rawFood
         self.name = form.name
         self.emoji = form.emoji
-        self.detail = form.detail
-        self.brand = form.brand
         self.amount = form.info.amount
-        self.serving = form.info.serving
         self.nutrients = form.info.nutrients
         self.sizes = form.info.sizes
+        self.publishStatus = form.publishStatus
+        self.numberOfUses = 0
+        self.changes = []
+
+        self.serving = form.info.serving
+        self.detail = form.detail
+        self.brand = form.brand
         self.density = form.info.density
         self.linkUrl = form.info.linkUrl
         self.prefilledUrl = form.info.prefilledUrl
         self.imageIds = form.info.imageIds
-        self.publishStatus = form.publishStatus
-        
-        self.$user.id = userId
-        
-        self.changes = []
-        self.numberOfUses = 0
-        
-        self.createdAt = Date()
-        self.updatedAt = Date()
     }
 }
