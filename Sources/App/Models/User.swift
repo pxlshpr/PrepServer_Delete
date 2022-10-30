@@ -7,14 +7,20 @@ final class User: Model, Content {
     
     @ID(key: .id) var id: UUID?
     
-    @Field(key: "name") var name: String
+    @OptionalField(key: "cloud_kit_id") var cloudKitId: String?
     
+    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
+    @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
+
     @Children(for: \.$user) var foods: [UserFood]
 
     init() { }
-
-    init(_ form: UserCreateForm) {
+    
+    init(cloudKitId: String) {
         self.id = UUID()
-        self.name = form.name
+        self.cloudKitId = cloudKitId
+        
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 }

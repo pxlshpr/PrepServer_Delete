@@ -4,7 +4,9 @@ struct CreateUser: AsyncMigration {
     func prepare(on database: Database) async throws {
         try await database.schema("users")
             .id()
-            .field("name", .string, .required)
+            .field("cloud_kit_id", .string)
+            .field("created_at", .double)
+            .field("updated_at", .double)
             .create()
     }
     

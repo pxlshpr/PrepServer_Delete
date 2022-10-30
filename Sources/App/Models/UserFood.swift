@@ -71,19 +71,18 @@ final class UserFood: Model, Content {
             throw UserFoodDataError.bothSpawnedUserAndDatabaseFoodsWereProvided
         }
 
-        /// Check that the provided `userId` is for an existing user
-        guard let _ = try await User.find(form.info.userId, on: db) else {
-            throw UserFoodDataError.nonExistentUser
+        let user = try await UserController.createOrFetchUser(cloudKitId: form.info.cloudKitId, in: db)
+        guard let userId = user.id else {
+            throw UserCreateError.unableToCreateOrFetchUserForCloudKitId
         }
         
-        /// Make sure we don't have any repeating barcodes
-        
-        
-        /// For each barcode
-        for barcode in form.info.barcodes {
-            /// Validate it first
-            try barcode.validate()
-        }
+        /// **Deprecated**
+//        /// Make sure we don't have any repeating barcodes
+//        /// Validate each barcode
+//        for barcode in form.info.barcodes {
+//            /// Validate it first
+//            try barcode.validate()
+//        }
         
         //MARK: Now we can create the UserFood
         self.id = form.id
@@ -101,7 +100,7 @@ final class UserFood: Model, Content {
         self.imageIds = form.info.imageIds
         self.status = form.status
         
-        self.$user.id = form.info.userId
+        self.$user.id = userId
         
         self.changes = []
         self.numberOfUsesByOwner = 0
