@@ -22,7 +22,7 @@ final class UserFood: Model, Content {
     @OptionalField(key: "prefilled_url") var prefilledUrl: String?
     @OptionalField(key: "image_ids") var imageIds: [UUID]?
 
-    @Field(key: "status") var status: UserFoodStatus
+    @Field(key: "status") var status: UserFoodPublishStatus
     @OptionalParent(key: "spawned_user_food_id") var spawnedUserFood: UserFood?
     @OptionalParent(key: "spawned_database_food_id") var spawnedDatabaseFood: DatabaseFood?
     @Field(key: "changes") var changes: [UserFoodChange]
@@ -98,7 +98,7 @@ final class UserFood: Model, Content {
         self.linkUrl = form.info.linkUrl
         self.prefilledUrl = form.info.prefilledUrl
         self.imageIds = form.info.imageIds
-        self.status = form.status
+        self.status = form.publishStatus
         
         self.$user.id = userId
         

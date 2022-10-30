@@ -6,21 +6,60 @@ final class User: Model, Content {
     static let schema = "users"
     
     @ID(key: .id) var id: UUID?
-    
     @OptionalField(key: "cloud_kit_id") var cloudKitId: String?
-    
     @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
     @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
+
+    @Field(key: "preferred_energy_unit") var preferredEnergyUnit: EnergyUnit
+    @Field(key: "prefers_metric_units") var prefersMetricUnit: Bool
+    @Field(key: "volume_explicit_units") var explicitVolumeUnits: UserExplicitVolumeUnits
+    @OptionalField(key: "anthropometric_records") var anthropometricRecords: AnthropometricRecords?
 
     @Children(for: \.$user) var foods: [UserFood]
 
     init() { }
     
-    init(cloudKitId: String) {
+    init(
+        cloudKitId: String,
+        preferredEnergyUnit: EnergyUnit = .kcal,
+        prefersMetricUnit: Bool = true,
+        explicitVolumeUnits: UserExplicitVolumeUnits = UserExplicitVolumeUnits.defaultUnits,
+        anthropometricRecords: AnthropometricRecords = AnthropometricRecords.empty
+    ) {
         self.id = UUID()
         self.cloudKitId = cloudKitId
         
+        self.preferredEnergyUnit = preferredEnergyUnit
+        self.prefersMetricUnit = prefersMetricUnit
+        self.explicitVolumeUnits = explicitVolumeUnits
+        self.anthropometricRecords = anthropometricRecords
+        
         self.createdAt = Date()
         self.updatedAt = Date()
+    }
+}
+
+extension UserExplicitVolumeUnits {
+    static var defaultUnits: UserExplicitVolumeUnits {
+        UserExplicitVolumeUnits(
+            cup: .cupMetric,
+            teaspoon: .teaspoonMetric,
+            tablespoon: .tablespoonMetric,
+            fluidOunce: .fluidOunceUSNutritionLabeling,
+            pint: .pintMetric,
+            quart: .quartUSLiquid,
+            gallon: .gallonUSLiquid
+        )
+    }
+}
+
+extension AnthropometricRecords {
+    static var empty: AnthropometricRecords {
+        AnthropometricRecords(
+            currentWeight: nil,
+            currentHeight: nil,
+            pastWeights: [],
+            pastHeights: []
+        )
     }
 }
