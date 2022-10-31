@@ -15,7 +15,7 @@ final class PresetFood: Model, Content {
     @Field(key: "amount") var amount: FoodValue
     @Field(key: "nutrients") var nutrients: FoodNutrients
     @Field(key: "sizes") var sizes: [FoodSize]
-    @Field(key: "number_of_uses") var numberOfUses: Int32
+    @Field(key: "number_of_times_consumed") var numberOfTimesConsumed: Int32
     @Field(key: "dataset") var dataset: FoodDataset
 
     @OptionalField(key: "serving") var serving: FoodValue?

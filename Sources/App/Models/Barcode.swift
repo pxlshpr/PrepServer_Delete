@@ -9,6 +9,7 @@ final class Barcode: Model, Content {
     @OptionalParent(key: "user_food_id") var userFood: UserFood?
     @OptionalParent(key: "preset_food_id") var presetFood: PresetFood?
     @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
+    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
 
     @Field(key: "payload") var payload: String
     @Field(key: "symbology") var symbology: BarcodeSymbology

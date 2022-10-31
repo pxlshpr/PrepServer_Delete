@@ -19,7 +19,7 @@ struct CreateUserFood: AsyncMigration {
             .field("nutrients", .json, .required)
             .field("sizes", .array(of: .json), .required)
             .field("publish_status", .int16, .required)
-            .field("number_of_uses", .int32, .required)
+            .field("number_of_times_consumed", .int32, .required)
             .field("changes", .array(of: .json), .required)
 
             .field("serving", .json)

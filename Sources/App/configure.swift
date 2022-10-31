@@ -15,19 +15,40 @@ public func configure(_ app: Application) throws {
         database: Environment.get("DATABASE_NAME") ?? "prep"
     ), as: .psql)
 
-    app.migrations.add(CreateUser())
     app.migrations.add(CreatePresetFood())
-    app.migrations.add(CreateUserFood())
-    app.migrations.add(CreateBarcode())
-    app.migrations.add(CreateTokenAward())
-    app.migrations.add(CreateTokenRedemption())
-
-    app.migrations.add(CreateDay())
-    app.migrations.add(CreateEnergyExpenditure())
-    app.migrations.add(CreateFoodItem())
-    app.migrations.add(CreateFoodUsage())
+    app.migrations.add(CreateUser())
+    
+    /// prerequisite: User
     app.migrations.add(CreateGoal())
+    
+    /// prerequisite: User, PresetFood
+    app.migrations.add(CreateUserFood())
+    
+    /// prerequisite: UserFood, PresetFood
+    app.migrations.add(CreateBarcode())
+    
+    /// prerequisite: User, UserFood
+    app.migrations.add(CreateTokenAward())
+    
+    /// prerequisite: User
+    app.migrations.add(CreateTokenRedemption())
+    
+    /// prerequisite: User, Goal
+    app.migrations.add(CreateDay())
+    
+    /// prerequisite: Day
+    app.migrations.add(CreateEnergyExpenditure())
+
+    /// prerequisite: Day
     app.migrations.add(CreateMeal())
+
+    /// prerequisite: UserFood, PresetFood, Meal
+    app.migrations.add(CreateFoodItem())
+    
+    /// prerequisite: User, UserFood, PresetFood
+    app.migrations.add(CreateFoodUsage())
+    
+    /// prerequisite: Meal
     app.migrations.add(CreateQuickMealItem())
 
     app.http.server.configuration.port = 8083

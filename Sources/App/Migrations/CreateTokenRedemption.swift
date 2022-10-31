@@ -6,7 +6,8 @@ struct CreateTokenRedemption: AsyncMigration {
             .id()
             .field("user_id", .uuid, .references(User.schema, .id), .required)
             .field("created_at", .double)
-        
+            .field("deleted_at", .double)
+
             .field("tokens_redeemed", .int32, .required)
             .create()
     }

@@ -21,7 +21,7 @@ final class UserFood: Model, Content {
     @Field(key: "nutrients") var nutrients: FoodNutrients
     @Field(key: "sizes") var sizes: [FoodSize]
     @Field(key: "publish_status") var publishStatus: UserFoodPublishStatus
-    @Field(key: "number_of_uses") var numberOfUses: Int32
+    @Field(key: "number_of_times_consumed") var numberOfTimesConsumed: Int32
     @Field(key: "changes") var changes: [UserFoodChange]
     @OptionalField(key: "serving") var serving: FoodValue?
     @OptionalField(key: "detail") var detail: String?
@@ -87,7 +87,7 @@ final class UserFood: Model, Content {
         self.nutrients = form.info.nutrients
         self.sizes = form.info.sizes
         self.publishStatus = form.publishStatus
-        self.numberOfUses = 0
+        self.numberOfTimesConsumed = 0
         self.changes = []
 
         self.serving = form.info.serving

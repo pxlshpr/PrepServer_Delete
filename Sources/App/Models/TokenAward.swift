@@ -10,6 +10,7 @@ final class TokenAward: Model, Content {
     @Parent(key: "user_food_id") var userFood: UserFood
     @OptionalParent(key: "other_user_id") var otherUser: User?
     @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
+    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
 
     @Field(key: "award_type") var awardType: TokenAwardType
     @Field(key: "tokens_awarded") var tokensAwarded: Int32

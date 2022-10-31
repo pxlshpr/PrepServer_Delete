@@ -5,17 +5,17 @@ import PrepDataTypes
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let users = routes.grouped("users")
-        users.post("user_foods", use: userFoods)
+//        users.post("user_foods", use: userFoods)
     }
     
-    func userFoods(req: Request) async throws -> [UserFood] {
-        let params = try req.content.decode(UserFoodsForUserParams.self)
-        return try await User.query(on: req.db)
-            .filter(\.$id == params.userId)
-            .with(\.$userFoods)
-            .first()
-            .map { $0.userFoods } ?? []
-    }
+//    func userFoods(req: Request) async throws -> [UserFood] {
+//        let params = try req.content.decode(UserFoodsForUserParams.self)
+//        return try await User.query(on: req.db)
+//            .filter(\.$id == params.userId)
+//            .with(\.$userFoods)
+//            .first()
+//            .map { $0.userFoods } ?? []
+//    }
 }
 
 extension UserController {

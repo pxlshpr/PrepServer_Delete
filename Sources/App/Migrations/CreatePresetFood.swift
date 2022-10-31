@@ -13,7 +13,7 @@ struct CreatePresetFood: AsyncMigration {
             .field("amount", .json, .required)
             .field("nutrients", .json, .required)
             .field("sizes", .array(of: .json), .required)
-            .field("number_of_uses", .int32, .required)
+            .field("number_of_times_consumed", .int32, .required)
             .field("dataset", .int16, .required)
 
             .field("serving", .json)
