@@ -4,7 +4,7 @@ import PrepDataTypes
 
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let users = routes.grouped("users")
+//        let users = routes.grouped("users")
 //        users.post("user_foods", use: userFoods)
     }
     
