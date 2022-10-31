@@ -22,6 +22,14 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreateTokenAward())
     app.migrations.add(CreateTokenRedemption())
 
+    app.migrations.add(CreateDay())
+    app.migrations.add(CreateEnergyExpenditure())
+    app.migrations.add(CreateFoodItem())
+    app.migrations.add(CreateFoodUsage())
+    app.migrations.add(CreateGoal())
+    app.migrations.add(CreateMeal())
+    app.migrations.add(CreateQuickMealItem())
+
     app.http.server.configuration.port = 8083
 
     // register routes

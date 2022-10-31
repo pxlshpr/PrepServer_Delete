@@ -12,10 +12,15 @@ final class User: Model, Content {
 
     @Field(key: "preferred_energy_unit") var preferredEnergyUnit: EnergyUnit
     @Field(key: "prefers_metric_units") var prefersMetricUnit: Bool
-    @Field(key: "volume_explicit_units") var explicitVolumeUnits: UserExplicitVolumeUnits
-    @OptionalField(key: "anthropometric_records") var anthropometricRecords: AnthropometricRecords?
+    @Field(key: "explicit_volume_units") var explicitVolumeUnits: UserExplicitVolumeUnits
+    @OptionalField(key: "body_measurements") var bodyMeasurements: BodyMeasurements?
 
-    @Children(for: \.$user) var foods: [UserFood]
+    @Children(for: \.$user) var days: [Day]
+    @Children(for: \.$user) var foodUsages: [FoodUsage]
+    @Children(for: \.$user) var goals: [Goal]
+    @Children(for: \.$user) var tokenAwards: [TokenAward]
+    @Children(for: \.$user) var tokenRedemptions: [TokenRedemption]
+    @Children(for: \.$user) var userFoods: [UserFood]
 
     init() { }
     
@@ -24,7 +29,7 @@ final class User: Model, Content {
         preferredEnergyUnit: EnergyUnit = .kcal,
         prefersMetricUnit: Bool = true,
         explicitVolumeUnits: UserExplicitVolumeUnits = UserExplicitVolumeUnits.defaultUnits,
-        anthropometricRecords: AnthropometricRecords = AnthropometricRecords.empty
+        bodyMeasurements: BodyMeasurements = BodyMeasurements.empty
     ) {
         self.id = UUID()
         self.cloudKitId = cloudKitId
@@ -32,7 +37,7 @@ final class User: Model, Content {
         self.preferredEnergyUnit = preferredEnergyUnit
         self.prefersMetricUnit = prefersMetricUnit
         self.explicitVolumeUnits = explicitVolumeUnits
-        self.anthropometricRecords = anthropometricRecords
+        self.bodyMeasurements = bodyMeasurements
         
         self.createdAt = Date()
         self.updatedAt = Date()
@@ -53,9 +58,9 @@ extension UserExplicitVolumeUnits {
     }
 }
 
-extension AnthropometricRecords {
-    static var empty: AnthropometricRecords {
-        AnthropometricRecords(
+extension BodyMeasurements {
+    static var empty: BodyMeasurements {
+        BodyMeasurements(
             currentWeight: nil,
             currentHeight: nil,
             pastWeights: [],

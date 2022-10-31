@@ -12,9 +12,9 @@ struct UserController: RouteCollection {
         let params = try req.content.decode(UserFoodsForUserParams.self)
         return try await User.query(on: req.db)
             .filter(\.$id == params.userId)
-            .with(\.$foods)
+            .with(\.$userFoods)
             .first()
-            .map { $0.foods } ?? []
+            .map { $0.userFoods } ?? []
     }
 }
 

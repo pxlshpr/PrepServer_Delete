@@ -31,6 +31,7 @@ final class UserFood: Model, Content {
     @OptionalField(key: "prefilled_url") var prefilledUrl: String?
     @OptionalField(key: "image_ids") var imageIds: [UUID]?
 
+    @Children(for: \.$parentUserFood) var foodItems: [FoodItem]
     @Children(for: \.$userFood) var barcodes: [Barcode]
     
     init() { }
