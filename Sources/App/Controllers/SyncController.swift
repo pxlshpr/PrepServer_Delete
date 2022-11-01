@@ -16,6 +16,8 @@ struct SyncController: RouteCollection {
     }
 
     func processSyncForm(_ syncForm: SyncForm, db: Database) async throws {
+        print("Received 📱 → 💧: \(syncForm.description)")
+
         if let updates = syncForm.updates {
             try await processUpdates(
                 updates,
@@ -30,14 +32,15 @@ struct SyncController: RouteCollection {
         }
     }
     
-    /// ** Construct SyncForm response**
     func constructSyncForm(for syncForm: SyncForm, db: Database) async throws -> SyncForm {
-        SyncForm(
-            updates: try await constructUpdates(for: syncForm.userId, after: syncForm.versionTimestamp, db: db),
+        let syncForm = SyncForm(
+            updates: try await constructUpdates(for: syncForm, db: db),
             deletions: await constructDeletions(for: syncForm.versionTimestamp),
             userId: try await userId(for: syncForm, db: db),
             versionTimestamp: Date().timeIntervalSince1970
         )
+        print("Sending 💧 → 📱: \(syncForm.description)")
+        return syncForm
     }
     
     func userId(for syncForm: SyncForm, db: Database) async throws -> UUID {

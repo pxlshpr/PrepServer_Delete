@@ -17,7 +17,7 @@ extension SyncController {
     func processUpdatedUser(_ deviceUser: PrepDataTypes.User, db: Database) async throws {
         do {
             /// Find the user by checking either the `id` or the `cloudKitId` if it exists.
-            if let serverUser = try await user(for: deviceUser, db: db) {
+            if let serverUser = try await user(forDeviceUser: deviceUser, db: db) {
                 try updateExistingUser(serverUser, with: deviceUser)
                 try await serverUser.update(on: db)
             } else {
@@ -31,6 +31,16 @@ extension SyncController {
     }
     
     func updateExistingUser(_ serverUser: User, with deviceUser: PrepDataTypes.User) throws {
+        
+        if deviceUser.id != serverUser.id {
+            /// If the ids don't match (because the user logged in on a new device)
+            /// reset the `updatedAt` timestamp forwards so that it gets included in the `SyncForm` we will be responding with
+            serverUser.updatedAt = Date()
+            print("Server user updated at is now: \(serverUser.updatedAt!.timeIntervalSince1970)")
+        } else {
+            serverUser.updatedAt = Date(timeIntervalSince1970: deviceUser.updatedAt)
+        }
+
         /// If we have a `cloudKitId` and it doesn't match what was received
         /// throw an error (it's assumed to never change once a user sets it)
         if let serverCloudKitId = serverUser.cloudKitId,
@@ -45,14 +55,6 @@ extension SyncController {
         serverUser.prefersMetricUnit = deviceUser.prefersMetricUnits
         serverUser.explicitVolumeUnits = deviceUser.explicitVolumeUnits
         serverUser.bodyMeasurements = deviceUser.bodyMeasurements
-        
-        if deviceUser.id != serverUser.id {
-            /// If the ids don't match (because the user logged in on a new device)
-            /// reset the `updatedAt` timestamp forwards so that it gets included in the `SyncForm` we will be responding with
-            serverUser.updatedAt = Date()
-        } else {
-            serverUser.updatedAt = Date(timeIntervalSince1970: deviceUser.updatedAt)
-        }
     }
 
     func user(forCloudKitId cloudKitId: String, db: Database) async throws -> User? {
@@ -61,7 +63,7 @@ extension SyncController {
             .first()
     }
 
-    func user(for deviceUser: PrepDataTypes.User, db: Database) async throws -> User? {
+    func user(forDeviceUser deviceUser: PrepDataTypes.User, db: Database) async throws -> User? {
         if let cloudKitId = deviceUser.cloudKitId {
             return try await user(forCloudKitId: cloudKitId, db: db)
         } else {
