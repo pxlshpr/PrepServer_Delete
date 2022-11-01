@@ -9,43 +9,29 @@ struct SyncController: RouteCollection {
     }
     
     func performSync(req: Request) async throws -> SyncForm {
-        let syncForm = try req.content.decode(SyncForm.self)
-        
-        /// ** Process SyncForm request **
-        /// *Updates*
-        /// For each entity in updates
-        /// If the entity doesn't exist, add it
-        /// If the entity exists and `device.updatedAt > server.updatedAt`
-        ///     update it with the received object (depending on type)—updatedAt flag will be updated to what device has
+        let deviceSyncForm = try req.content.decode(SyncForm.self)
 
-        /// *Deletions*
-        /// For each entity in deletions, check if it exists first
-        /// If `server.updatedAt < device.deletedAt` then
-        ///     delete it it depending on the type (type choose if its a soft or hard deletion), for soft deletions, `deletedAt` set to device
-        /// otherwise don't delete it (we'll be sending the user an update in the response)
+        await processSyncForm(deviceSyncForm)
+        return await constructSyncForm(for: deviceSyncForm.versionTimestamp)
+    }
 
-        /// ** Construct SyncForm response**
-        /// *Updates*
-        /// Populate with all entities that have `server.updatedAt > device.versionTimestamp` (this will include new entities too)
+    func processSyncForm(_ syncForm: SyncForm) async {
+        if let updates = syncForm.updates {
+            await processUpdates(updates, version: syncForm.versionTimestamp)
+        }
 
-        /// *Deletions*
-        /// Populate with all entities that have `server.deletedAt > device.versionTimestamp`
-
-        /// *VersionToken*
-        /// Set as current timestamp
-        /// Now return this
-
-        return syncForm
-//        let userFood = try await UserFood(createForm, for: req.db)
-//        try await userFood.save(on: req.db)
-//        guard let userFoodId = userFood.id else {
-//            throw UserFoodCreateError.missingFoodId
-//        }
-//        for barcode in createForm.info.barcodes {
-//            let barcode = Barcode(barcode: barcode, userFoodId: userFoodId)
-//            try await barcode.save(on: req.db)
-//        }
-//        return .ok
+        if let deletions = syncForm.deletions {
+            await processDeletions(deletions, version: syncForm.versionTimestamp)
+        }
+    }
+    
+    /// ** Construct SyncForm response**
+    func constructSyncForm(for versionTimestamp: Double) async -> SyncForm {
+        SyncForm(
+            updates: await constructUpdates(for: versionTimestamp),
+            deletions: await constructDeletions(for: versionTimestamp),
+            versionTimestamp: Date().timeIntervalSince1970
+        )
     }
 }
 
