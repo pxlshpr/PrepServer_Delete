@@ -19,7 +19,6 @@ extension SyncController {
         guard let serverUser = try await user(forDeviceUser: deviceUser, db: db) else {
             return nil
         }
-        print("sending back serverUser with id: \(serverUser.id?.uuidString ?? "no uuid")")
         return PrepDataTypes.User(from: serverUser)
     }
 }
