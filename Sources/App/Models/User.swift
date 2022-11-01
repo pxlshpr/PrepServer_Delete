@@ -15,12 +15,12 @@ final class User: Model, Content {
     @Field(key: "explicit_volume_units") var explicitVolumeUnits: UserExplicitVolumeUnits
     @OptionalField(key: "body_measurements") var bodyMeasurements: BodyMeasurements?
 
-//    @Children(for: \.$user) var days: [Day]
-//    @Children(for: \.$user) var foodUsages: [FoodUsage]
+    @Children(for: \.$user) var days: [Day]
+    @Children(for: \.$user) var foodUsages: [FoodUsage]
     @Children(for: \.$user) var goals: [Goal]
-//    @Children(for: \.$user) var tokenAwards: [TokenAward]
-//    @Children(for: \.$user) var tokenRedemptions: [TokenRedemption]
-//    @Children(for: \.$user) var userFoods: [UserFood]
+    @Children(for: \.$user) var tokenAwards: [TokenAward]
+    @Children(for: \.$user) var tokenRedemptions: [TokenRedemption]
+    @Children(for: \.$user) var userFoods: [UserFood]
 
     init() { }
     
