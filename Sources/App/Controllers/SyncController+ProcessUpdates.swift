@@ -54,8 +54,13 @@ extension SyncController {
     func updateMeals(with deviceMeals: [PrepDataTypes.Meal], db: Database) async throws {
         do {
             for deviceMeal in deviceMeals {
+                let serverMeal = try await Meal.query(on: db)
+                    .filter(\.$id == deviceMeal.id)
+                    .with(\.$day)
+                    .first()
+                
                 /// If it exists, update it
-                if let serverMeal = try await Meal.find(deviceMeal.id, on: db) {
+                if let serverMeal {
                     /// If the `Day`'s don't match, fetch the new one and supply it to the `updateServerMeal` function
                     let newDay: Day?
                     if serverMeal.day.id != deviceMeal.day.id {
@@ -86,8 +91,14 @@ extension SyncController {
     func updateDays(with deviceDays: [PrepDataTypes.Day], user: User, db: Database) async throws {
         do {
             for deviceDay in deviceDays {
+                
+                let serverDay = try await Day.query(on: db)
+                    .filter(\.$id == deviceDay.id)
+                    .with(\.$goal)
+                    .first()
+
                 /// If it exists, update it
-                if let serverDay = try await Day.find(deviceDay.id, on: db) {
+                if let serverDay {
                     /// If the `Goal`'s don't match, fetch the new one and supply it to the `updateServerDay` function
                     let newGoal: Goal?
                     if let deviceGoalId = deviceDay.goal?.id,

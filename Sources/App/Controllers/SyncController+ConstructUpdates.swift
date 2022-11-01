@@ -35,6 +35,7 @@ extension PrepDataTypes.User {
             prefersMetricUnits: serverUser.prefersMetricUnit,
             explicitVolumeUnits: serverUser.explicitVolumeUnits,
             bodyMeasurements: serverUser.bodyMeasurements,
+            syncStatus: .synced,
             updatedAt: serverUser.updatedAt
         )
     }
