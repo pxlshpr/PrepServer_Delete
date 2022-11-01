@@ -11,13 +11,13 @@ struct SyncController: RouteCollection {
     func performSync(req: Request) async throws -> SyncForm {
         let deviceSyncForm = try req.content.decode(SyncForm.self)
 
-        await processSyncForm(deviceSyncForm)
+        try await processSyncForm(deviceSyncForm, db: req.db)
         return await constructSyncForm(for: deviceSyncForm.versionTimestamp)
     }
 
-    func processSyncForm(_ syncForm: SyncForm) async {
+    func processSyncForm(_ syncForm: SyncForm, db: Database) async throws {
         if let updates = syncForm.updates {
-            await processUpdates(updates, version: syncForm.versionTimestamp)
+            try await processUpdates(updates, version: syncForm.versionTimestamp, db: db)
         }
 
         if let deletions = syncForm.deletions {

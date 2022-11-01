@@ -42,5 +42,19 @@ final class User: Model, Content {
         self.createdAt = Date()
         self.updatedAt = Date()
     }
+    
+    init(deviceUser: PrepDataTypes.User) {
+        self.id = deviceUser.id
+        self.cloudKitId = deviceUser.cloudKitId
+        
+        self.preferredEnergyUnit = deviceUser.preferredEnergyUnit
+        self.prefersMetricUnit = deviceUser.prefersMetricUnits
+        self.explicitVolumeUnits = deviceUser.explicitVolumeUnits
+        self.bodyMeasurements = deviceUser.bodyMeasurements
+        
+        let createdDate = Date(timeIntervalSince1970: deviceUser.updatedAt)
+        self.createdAt = createdDate
+        self.updatedAt = createdDate
+    }
 }
 
