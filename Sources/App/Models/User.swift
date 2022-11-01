@@ -44,27 +44,3 @@ final class User: Model, Content {
     }
 }
 
-extension UserExplicitVolumeUnits {
-    static var defaultUnits: UserExplicitVolumeUnits {
-        UserExplicitVolumeUnits(
-            cup: .cupMetric,
-            teaspoon: .teaspoonMetric,
-            tablespoon: .tablespoonMetric,
-            fluidOunce: .fluidOunceUSNutritionLabeling,
-            pint: .pintMetric,
-            quart: .quartUSLiquid,
-            gallon: .gallonUSLiquid
-        )
-    }
-}
-
-extension BodyMeasurements {
-    static var empty: BodyMeasurements {
-        BodyMeasurements(
-            currentWeight: nil,
-            currentHeight: nil,
-            pastWeights: [],
-            pastHeights: []
-        )
-    }
-}
