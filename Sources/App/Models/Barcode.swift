@@ -8,8 +8,8 @@ final class Barcode: Model, Content {
     @ID(key: .id) var id: UUID?
     @OptionalParent(key: "user_food_id") var userFood: UserFood?
     @OptionalParent(key: "preset_food_id") var presetFood: PresetFood?
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "payload") var payload: String
     @Field(key: "symbology") var symbology: BarcodeSymbology
@@ -22,7 +22,7 @@ final class Barcode: Model, Content {
         self.symbology = symbology
         self.$userFood.id = userFoodId
         self.$presetFood.id = presetFoodId
-        self.createdAt = Date()
+        self.createdAt = Date().timeIntervalSince1970
     }
     
     init(barcode: FoodBarcode, userFoodId: UserFood.IDValue? = nil, presetFoodId: PresetFood.IDValue? = nil) {
@@ -31,6 +31,6 @@ final class Barcode: Model, Content {
         self.symbology = barcode.symbology
         self.$userFood.id = userFoodId
         self.$presetFood.id = presetFoodId
-        self.createdAt = Date()
+        self.createdAt = Date().timeIntervalSince1970
     }
 }

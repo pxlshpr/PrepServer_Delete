@@ -25,10 +25,7 @@ extension SyncController {
 
 extension PrepDataTypes.User {
     init?(from serverUser: User) {
-        guard
-            let id = serverUser.id,
-            let updatedAt = serverUser.updatedAt
-        else {
+        guard let id = serverUser.id else {
             return nil
         }
         self.init(
@@ -38,7 +35,7 @@ extension PrepDataTypes.User {
             prefersMetricUnits: serverUser.prefersMetricUnit,
             explicitVolumeUnits: serverUser.explicitVolumeUnits,
             bodyMeasurements: serverUser.bodyMeasurements,
-            updatedAt: updatedAt.timeIntervalSince1970
+            updatedAt: serverUser.updatedAt
         )
     }
 }

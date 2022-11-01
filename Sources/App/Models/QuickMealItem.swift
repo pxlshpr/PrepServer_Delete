@@ -7,9 +7,9 @@ final class QuickMealItem: Model, Content {
     
     @ID(key: .id) var id: UUID?
     @Parent(key: "meal_id") var meal: Meal
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .create, format: .unix) var updatedAt: Date?
-    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "name") var name: String
     @OptionalField(key: "nutrients") var nutrients: QuickMealNutrients?

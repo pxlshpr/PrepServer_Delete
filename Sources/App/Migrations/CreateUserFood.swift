@@ -7,8 +7,8 @@ struct CreateUserFood: AsyncMigration {
             .field("user_id", .uuid, .references(User.schema, .id), .required)
             .field("spawned_user_food_id", .uuid, .references(UserFood.schema, .id))
             .field("spawned_preset_food_id", .uuid, .references(PresetFood.schema, .id))
-            .field("created_at", .double)
-            .field("updated_at", .double)
+            .field("created_at", .double, .required)
+            .field("updated_at", .double, .required)
             .field("deleted_at", .double)
             .field("deleted_for_owner_at", .double)
 

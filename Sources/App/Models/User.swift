@@ -7,8 +7,8 @@ final class User: Model, Content {
     
     @ID(key: .id) var id: UUID?
     @OptionalField(key: "cloud_kit_id") var cloudKitId: String?
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
 
     @Field(key: "preferred_energy_unit") var preferredEnergyUnit: EnergyUnit
     @Field(key: "prefers_metric_units") var prefersMetricUnit: Bool
@@ -39,8 +39,8 @@ final class User: Model, Content {
         self.explicitVolumeUnits = explicitVolumeUnits
         self.bodyMeasurements = bodyMeasurements
         
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        self.createdAt = Date().timeIntervalSince1970
+        self.updatedAt = Date().timeIntervalSince1970
     }
     
     init(deviceUser: PrepDataTypes.User) {
@@ -52,9 +52,8 @@ final class User: Model, Content {
         self.explicitVolumeUnits = deviceUser.explicitVolumeUnits
         self.bodyMeasurements = deviceUser.bodyMeasurements
         
-        let createdDate = Date(timeIntervalSince1970: deviceUser.updatedAt)
-        self.createdAt = createdDate
-        self.updatedAt = createdDate
+        self.createdAt = deviceUser.updatedAt
+        self.updatedAt = deviceUser.updatedAt
     }
 }
 

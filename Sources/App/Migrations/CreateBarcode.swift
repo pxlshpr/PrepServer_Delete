@@ -8,7 +8,7 @@ struct CreateBarcode: AsyncMigration {
             .id()
             .field("user_food_id", .uuid, .references(UserFood.schema, .id))
             .field("preset_food_id", .uuid, .references(PresetFood.schema, .id))
-            .field("created_at", .double)
+            .field("created_at", .double, .required)
             .field("deleted_at", .double)
 
             .field("payload", .string, .required)

@@ -5,8 +5,8 @@ struct CreateUser: AsyncMigration {
         try await database.schema("users")
             .id()
             .field("cloud_kit_id", .string)
-            .field("created_at", .double)
-            .field("updated_at", .double)
+            .field("created_at", .double, .required)
+            .field("updated_at", .double, .required)
 
             .field("preferred_energy_unit", .int16, .required)
             .field("prefers_metric_units", .bool, .required)

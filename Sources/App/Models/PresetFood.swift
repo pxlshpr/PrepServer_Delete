@@ -6,9 +6,9 @@ final class PresetFood: Model, Content {
     static let schema = "preset_foods"
     
     @ID(key: .id) var id: UUID?
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
-    @Timestamp(key: "deleted_at", on: .delete, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "name") var name: String
     @Field(key: "emoji") var emoji: String

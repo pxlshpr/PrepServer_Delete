@@ -9,9 +9,9 @@ final class UserFood: Model, Content {
     @Parent(key: "user_id") var user: User
     @OptionalParent(key: "spawned_user_food_id") var spawnedUserFood: UserFood?
     @OptionalParent(key: "spawned_preset_food_id") var spawnedPresetFood: PresetFood?
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .update, format: .unix) var updatedAt: Date?
-    @Timestamp(key: "deleted_at", on: .delete, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
     @OptionalField(key: "deleted_for_owner_at") var deletedForOwnerAt: Double?
 
     @Field(key: "food_type") var foodType: FoodType
@@ -77,8 +77,8 @@ final class UserFood: Model, Content {
         self.$user.id = userId
         self.$spawnedUserFood.id = spawnedUserFood?.id
         self.$spawnedPresetFood.id = spawnedPresetFood?.id
-        self.createdAt = Date()
-        self.updatedAt = Date()
+        self.createdAt = Date().timeIntervalSince1970
+        self.updatedAt = Date().timeIntervalSince1970
 
         self.foodType = .rawFood
         self.name = form.name

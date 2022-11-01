@@ -68,6 +68,9 @@ enum ServerSyncError: Error {
     case newCloudKitIdReceivedForUser(String)
     case processUpdatesError(String? = nil)
     case couldNotGetUserIdForCloudKitId(String)
+    case userNotFound
+    case dayNotFound
+    case goalNotFound
 }
 
 extension SyncForm: Content {

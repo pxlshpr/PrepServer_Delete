@@ -8,8 +8,8 @@ struct CreateDay: AsyncMigration {
             .id()
             .field("user_id", .uuid, .references(User.schema, .id), .required)
             .field("goal_id", .uuid, .references(Goal.schema, .id))
-            .field("created_at", .double)
-            .field("updated_at", .double)
+            .field("created_at", .double, .required)
+            .field("updated_at", .double, .required)
 
             .field("date", .double, .required)
             .field("add_energy_expenditures_to_goal", .bool, .required)

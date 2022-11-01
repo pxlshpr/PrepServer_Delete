@@ -5,8 +5,8 @@ struct CreateGoal: AsyncMigration {
         try await database.schema("goals")
             .id()
             .field("user_id", .uuid, .references(User.schema, .id))
-            .field("created_at", .double)
-            .field("updated_at", .double)
+            .field("created_at", .double, .required)
+            .field("updated_at", .double, .required)
             .field("deleted_at", .double)
 
             .field("name", .string, .required)

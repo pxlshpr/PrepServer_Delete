@@ -1,20 +1,34 @@
 import Fluent
 import Vapor
+import PrepDataTypes
 
 final class Meal: Model, Content {
     static let schema = "meals"
     
     @ID(key: .id) var id: UUID?
     @Parent(key: "day_id") var day: Day
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .create, format: .unix) var updatedAt: Date?
-    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "name") var name: String
-    @Field(key: "time") var time: Date
-    @OptionalField(key: "marked_as_eaten_at") var markedAsEatenAt: Date?
+    @Field(key: "time") var time: Double
+    @OptionalField(key: "marked_as_eaten_at") var markedAsEatenAt: Double?
 
     @Children(for: \.$meal) var foodItems: [FoodItem]
 
     init() { }
+    
+    init(deviceMeal: PrepDataTypes.Meal, dayId: Day.IDValue) {
+        self.id = deviceMeal.id
+        self.$day.id = dayId
+        
+        self.createdAt = deviceMeal.updatedAt
+        self.updatedAt = deviceMeal.updatedAt
+        self.deletedAt = nil
+       
+        self.name = deviceMeal.name
+        self.time = deviceMeal.time
+        self.markedAsEatenAt = deviceMeal.markedAsEatenAt
+    }
 }

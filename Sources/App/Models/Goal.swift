@@ -7,9 +7,9 @@ final class Goal: Model, Content {
     
     @ID(key: .id) var id: UUID?
     @OptionalParent(key: "user_id") var user: User?
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "updated_at", on: .create, format: .unix) var updatedAt: Date?
-    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @Field(key: "updated_at") var updatedAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "name") var name: String
     @Field(key: "is_for_meal") var isForMeal: Bool

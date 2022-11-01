@@ -7,8 +7,8 @@ final class TokenRedemption: Model, Content {
     
     @ID(key: .id) var id: UUID?
     @Parent(key: "user_id") var user: User
-    @Timestamp(key: "created_at", on: .create, format: .unix) var createdAt: Date?
-    @Timestamp(key: "deleted_at", on: .create, format: .unix) var deletedAt: Date?
+    @Field(key: "created_at") var createdAt: Double
+    @OptionalField(key: "deleted_at") var deletedAt: Double?
 
     @Field(key: "tokens_redeemed") var tokensRedeemed: Int32
 
