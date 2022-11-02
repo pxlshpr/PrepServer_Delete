@@ -9,8 +9,6 @@ extension SyncController {
         let days = try await updatedDays(for: syncForm, db: db)
         let meals = try await updatedMeals(for: syncForm, db: db)
         
-        print("Returning \(days?.count ?? 0) days")
-        print("Returning \(meals?.count ?? 0) meals")
         return SyncForm.Updates(
             user: try await updatedDeviceUser(for: syncForm, db: db),
             days: days,
@@ -21,19 +19,10 @@ extension SyncController {
     
     func updatedDays(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Day]? {
         /// If we have a `cloudKitId`, use that in case the user just started using a new device
-        guard let deviceUser = syncForm.updates?.user else {
-            return nil
-        }
-        guard let serverUser = try await user(forDeviceUser: deviceUser, db: db),
-              let id = serverUser.id
-        else {
-            return nil
-        }
-
-        return try await Day.query(on: db)
+        try await Day.query(on: db)
 //            .join(User.self, on: \Day.$user.$id == \User.$id)
 //            .filter(User.self, \.$id == syncForm.userId)
-            .filter(\.$user.$id == id)
+            .filter(\.$user.$id == syncForm.userId)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .all()
             .compactMap { day in
@@ -42,19 +31,9 @@ extension SyncController {
     }
 
     func updatedMeals(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Meal]? {
-        /// If we have a `cloudKitId`, use that in case the user just started using a new device
-        guard let deviceUser = syncForm.updates?.user else {
-            return nil
-        }
-        guard let serverUser = try await user(forDeviceUser: deviceUser, db: db),
-              let id = serverUser.id
-        else {
-            return nil
-        }
-        
-        return try await Meal.query(on: db)
+        try await Meal.query(on: db)
             .join(Day.self, on: \Meal.$day.$id == \Day.$id)
-            .filter(Day.self, \.$user.$id == id)
+            .filter(Day.self, \.$user.$id == syncForm.userId)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .with(\.$day)
             .all()
@@ -83,7 +62,7 @@ extension PrepDataTypes.Day {
         //TODO: Handle Goal
         self.init(
             id: id,
-            date: serverDay.date,
+            calendarDayString: serverDay.calendarDayString,
             goal: nil,
             addEnergyExpendituresToGoal: serverDay.addEnergyExpendituresToGoal,
             goalBonusEnergySplit: serverDay.goalBonusEnergySplit,

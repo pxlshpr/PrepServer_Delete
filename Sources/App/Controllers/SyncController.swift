@@ -33,11 +33,21 @@ struct SyncController: RouteCollection {
     }
     
     func constructSyncForm(for syncForm: SyncForm, db: Database) async throws -> SyncForm {
+        
+        let updates = try await constructUpdates(for: syncForm, db: db)
+        let deletions = await constructDeletions(for: syncForm.versionTimestamp)
+        let userId = try await userId(for: syncForm, db: db)
+        
+        /// Only update the timestamp if we're actually sending back information
+        let timestamp = (updates.count > 0 || deletions.count > 0)
+        ? Date().timeIntervalSince1970
+        : syncForm.versionTimestamp
+        
         let syncForm = SyncForm(
-            updates: try await constructUpdates(for: syncForm, db: db),
-            deletions: await constructDeletions(for: syncForm.versionTimestamp),
-            userId: try await userId(for: syncForm, db: db),
-            versionTimestamp: Date().timeIntervalSince1970
+            updates: updates,
+            deletions: deletions,
+            userId: userId,
+            versionTimestamp: timestamp
         )
         print("💧→ Sending \(syncForm.description)")
         return syncForm
