@@ -18,6 +18,11 @@ extension SyncController {
     
     
     func updatedDays(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Day]? {
+        
+        guard !syncForm.requestedCalendarDayStrings.isEmpty else {
+            return []
+        }
+        
         /// If we have a `cloudKitId`, use that in case the user just started using a new device
         let userId: UUID
         if let deviceUser = syncForm.updates?.user,
@@ -31,6 +36,7 @@ extension SyncController {
 
         return try await Day.query(on: db)
             .filter(\.$user.$id == userId)
+            .filter(\.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .all()
             .compactMap { day in
@@ -53,6 +59,7 @@ extension SyncController {
         return try await Meal.query(on: db)
             .join(Day.self, on: \Meal.$day.$id == \Day.$id)
             .filter(Day.self, \.$user.$id == userId)
+            .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .with(\.$day)
             .all()
