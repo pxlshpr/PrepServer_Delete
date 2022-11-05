@@ -36,7 +36,7 @@ final class UserFood: Model, Content {
     
     init() { }
 
-    init(_ form: UserFoodCreateForm, for db: Database) async throws {
+    init(_ form: UserFoodCreateForm, for db: Database, userId: User.IDValue) async throws {
         
         do {
             let _ = try form.validate()
@@ -44,6 +44,7 @@ final class UserFood: Model, Content {
             throw UserFoodCreateError.formError(formError)
         }
         
+        //TODO: Fetch these and provide them outside this initializer
         let spawnedUserFood: UserFood?
         if let userFoodId = form.info.spawnedUserFoodId {
             guard let userFood = try await UserFood.find(userFoodId, on: db) else {
@@ -66,11 +67,6 @@ final class UserFood: Model, Content {
         
         guard !(spawnedUserFood != nil && spawnedPresetFood != nil) else {
             throw UserFoodDataError.bothSpawnedUserFoodAndPresetFoodWasProvided
-        }
-
-        let user = try await UserController.createOrFetchUser(cloudKitId: form.info.cloudKitId, in: db)
-        guard let userId = user.id else {
-            throw UserCreateError.unableToCreateOrFetchUserForCloudKitId
         }
         
         self.id = form.id
