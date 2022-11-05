@@ -33,4 +33,13 @@ final class Barcode: Model, Content {
         self.$presetFood.id = presetFoodId
         self.createdAt = Date().timeIntervalSince1970
     }
+    
+    init(deviceBarcode: PrepDataTypes.Barcode, userFoodId: UserFood.IDValue) {
+        self.id = deviceBarcode.id
+        self.payload = deviceBarcode.payload
+        self.symbology = deviceBarcode.symbology
+        self.$userFood.id = userFoodId
+        self.$presetFood.id = nil
+        self.createdAt = Date().timeIntervalSince1970
+    }
 }

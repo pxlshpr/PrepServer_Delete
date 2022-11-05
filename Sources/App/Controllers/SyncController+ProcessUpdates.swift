@@ -102,7 +102,12 @@ extension SyncController {
                 
                 let userFood = UserFood(deviceFood: deviceFood, userId: try user.requireID())
                 
-                //TODO: Barcodes
+                if let deviceBarcodes = deviceFood.barcodes {
+                    for deviceBarcode in deviceBarcodes {
+                        let barcode = Barcode(deviceBarcode: deviceBarcode, userFoodId: try userFood.requireID())
+                        try await barcode.save(on: db)
+                    }
+                }
                 try await userFood.save(on: db)
             }
         } catch {
