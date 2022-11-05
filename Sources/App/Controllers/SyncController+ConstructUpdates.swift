@@ -37,6 +37,7 @@ extension SyncController {
         return try await UserFood.query(on: db)
             .filter(\.$user.$id == userId)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .with(\.$barcodes)
             .all()
             .compactMap { userFood in
                 PrepDataTypes.Food(from: userFood)
@@ -62,7 +63,7 @@ extension SyncController {
 
     func updatedMeals(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Meal]? {
         let userId = try await userId(from: syncForm, db: db)
-        return try await Meal.query(on: db)
+        let meals = try await Meal.query(on: db)
             .join(Day.self, on: \Meal.$day.$id == \Day.$id)
             .filter(Day.self, \.$user.$id == userId)
             .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
@@ -72,6 +73,15 @@ extension SyncController {
             .compactMap { meal in
                 PrepDataTypes.Meal(from: meal)
             }
+        
+        if !meals.isEmpty {
+            print("Returning meals for versionTimestamp: \(syncForm.versionTimestamp)")
+            for meal in meals {
+                print("  -> \(meal.name) — updatedAt: \(meal.updatedAt)")
+            }
+        }
+
+        return meals
     }
 
     func updatedDeviceUser(for syncForm: SyncForm, db: Database) async throws -> PrepDataTypes.User? {
@@ -86,6 +96,18 @@ extension SyncController {
     }
 }
 
+extension PrepDataTypes.Barcode {
+    init?(from serverBarcode: Barcode) {
+        guard let id = serverBarcode.id else {
+            return nil
+        }
+        self.init(
+            id: id,
+            payload: serverBarcode.payload,
+            symbology: serverBarcode.symbology
+        )
+    }
+}
 extension PrepDataTypes.Food {
     init?(from serverUserFood: UserFood) {
         guard let id = serverUserFood.id else {
@@ -110,6 +132,14 @@ extension PrepDataTypes.Food {
         /// [ ] `childrenFoods`
         /// [ ] `dataSet`
 
+        let barcodes: [PrepDataTypes.Barcode] = serverUserFood.barcodes.compactMap {
+            PrepDataTypes.Barcode(from: $0)
+        }
+        
+        let foodBarcodes = barcodes.map {
+            FoodBarcode(payload: $0.payload, symbology: $0.symbology)
+        }
+
         let info = FoodInfo(
             amount: serverUserFood.amount,
             serving: serverUserFood.serving,
@@ -119,7 +149,7 @@ extension PrepDataTypes.Food {
             linkUrl: serverUserFood.linkUrl,
             prefilledUrl: serverUserFood.prefilledUrl,
             imageIds: serverUserFood.imageIds,
-            barcodes: [],
+            barcodes: foodBarcodes,
             spawnedUserFoodId: nil,
             spawnedPresetFoodId: nil
         )
@@ -140,7 +170,7 @@ extension PrepDataTypes.Food {
             jsonSyncStatus: .synced,
             childrenFoods: nil,
             dataset: nil,
-            barcodes: [],
+            barcodes: barcodes,
             syncStatus: .synced,
             updatedAt: serverUserFood.updatedAt
         )

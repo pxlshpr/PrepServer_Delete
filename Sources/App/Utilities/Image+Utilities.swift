@@ -1,8 +1,9 @@
 import Foundation
 
-func saveImage(_ image: Image, to location: ImageLocation = .holdingArea) {
-    guard let filePath = location.filePath(for: image.id),
-          let directoryPath = location.directoryPath(for: image.id) else {
+func saveFile(_ file: FileContent, type: FileType, to location: FileLocation) {
+    
+    guard let filePath = location.filePath(for: file.id),
+          let directoryPath = location.directoryPath(for: file.id) else {
         print("Couldn't get paths")
         return
     }
@@ -16,7 +17,7 @@ func saveImage(_ image: Image, to location: ImageLocation = .holdingArea) {
         }
     }
     
-    let result = FileManager.default.createFile(atPath: filePath, contents: image.data, attributes: nil)
+    let result = FileManager.default.createFile(atPath: filePath, contents: file.data, attributes: nil)
     print("saving at \(filePath)")
     print("success: \(result)")
 }

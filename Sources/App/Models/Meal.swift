@@ -23,6 +23,7 @@ final class Meal: Model, Content {
         self.id = deviceMeal.id
         self.$day.id = dayId
         
+        print("Saving meal \(deviceMeal.name) with \(deviceMeal.updatedAt)")
         self.createdAt = deviceMeal.updatedAt
         self.updatedAt = deviceMeal.updatedAt
         self.deletedAt = nil

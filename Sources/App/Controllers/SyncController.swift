@@ -6,8 +6,22 @@ struct SyncController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let sync = routes.grouped("sync")
         sync.post(use: performSync)
+        sync.on(.POST, "image", body: .collect(maxSize: "20mb"), use: saveImage)
+        sync.on(.POST, "json", body: .collect(maxSize: "20mb"), use: saveJSON)
     }
     
+    func saveImage(req: Request) async throws -> String {
+        let imageFile = try req.content.decode(FileContent.self)
+        saveFile(imageFile, type: .image, to: .repository(.image))
+        return ""
+    }
+
+    func saveJSON(req: Request) async throws -> String {
+        let jsonFile = try req.content.decode(FileContent.self)
+        saveFile(jsonFile, type: .json, to: .repository(.json))
+        return ""
+    }
+
     func performSync(req: Request) async throws -> SyncForm {
         let deviceSyncForm = try req.content.decode(SyncForm.self)
 

@@ -1,7 +1,7 @@
 import Vapor
 import Foundation
 
-struct Image: Content {
+struct FileContent: Content {
     var id: String
     var data: Data
 }
