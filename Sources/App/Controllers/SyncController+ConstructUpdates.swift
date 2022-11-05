@@ -8,21 +8,17 @@ extension SyncController {
     func constructUpdates(for syncForm: SyncForm, db: Database) async throws -> SyncForm.Updates {
         let days = try await updatedDays(for: syncForm, db: db)
         let meals = try await updatedMeals(for: syncForm, db: db)
+        let foods = try await updatedUserFoods(for: syncForm, db: db)
         
         return SyncForm.Updates(
             user: try await updatedDeviceUser(for: syncForm, db: db),
             days: days,
+            foods: foods,
             meals: meals
         )
     }
     
-    
-    func updatedDays(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Day]? {
-        
-        guard !syncForm.requestedCalendarDayStrings.isEmpty else {
-            return []
-        }
-        
+    func userId(from syncForm: SyncForm, db: Database) async throws -> UUID {
         /// If we have a `cloudKitId`, use that in case the user just started using a new device
         let userId: UUID
         if let deviceUser = syncForm.updates?.user,
@@ -33,7 +29,27 @@ extension SyncController {
         } else {
             userId = syncForm.userId
         }
-
+        return userId
+    }
+    
+    func updatedUserFoods(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Food]? {
+        let userId = try await userId(from: syncForm, db: db)
+        return try await UserFood.query(on: db)
+            .filter(\.$user.$id == userId)
+            .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .all()
+            .compactMap { userFood in
+                PrepDataTypes.Food(from: userFood)
+            }
+    }
+    
+    func updatedDays(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Day]? {
+        
+        guard !syncForm.requestedCalendarDayStrings.isEmpty else {
+            return []
+        }
+        
+        let userId = try await userId(from: syncForm, db: db)
         return try await Day.query(on: db)
             .filter(\.$user.$id == userId)
             .filter(\.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
@@ -45,17 +61,7 @@ extension SyncController {
     }
 
     func updatedMeals(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.Meal]? {
-        /// If we have a `cloudKitId`, use that in case the user just started using a new device
-        let userId: UUID
-        if let deviceUser = syncForm.updates?.user,
-           let serverUser = try await user(forDeviceUser: deviceUser, db: db),
-           let id = serverUser.id
-        {
-            userId = id
-        } else {
-            userId = syncForm.userId
-        }
-        
+        let userId = try await userId(from: syncForm, db: db)
         return try await Meal.query(on: db)
             .join(Day.self, on: \Meal.$day.$id == \Day.$id)
             .filter(Day.self, \.$user.$id == userId)
@@ -77,6 +83,67 @@ extension SyncController {
             return nil
         }
         return PrepDataTypes.User(from: serverUser)
+    }
+}
+
+extension PrepDataTypes.Food {
+    init?(from serverUserFood: UserFood) {
+        guard let id = serverUserFood.id else {
+            return nil
+        }
+
+        //TODO: Get these from the `FoodUsage`
+        /// [ ] `numberOfTimesConsumedGlobally`
+        /// [ ] `numberOfTimesConsumed`
+        /// [ ] `lastUsedAt`
+        /// [ ] `firstUsedAt`
+
+        //TODO: Construct this
+        /// [ ] `barcodes`
+
+        //TODO: Make sure these are included in the query and set
+        /// [ ] `spawnedUserFoodId`
+        /// [ ] `spawnedPresetFoodId`
+
+        //TODO: Revist these and check that we're returning the correct values
+        /// [ ] `jsonSyncStatus`
+        /// [ ] `childrenFoods`
+        /// [ ] `dataSet`
+
+        let info = FoodInfo(
+            amount: serverUserFood.amount,
+            serving: serverUserFood.serving,
+            nutrients: serverUserFood.nutrients,
+            sizes: serverUserFood.sizes,
+            density: serverUserFood.density,
+            linkUrl: serverUserFood.linkUrl,
+            prefilledUrl: serverUserFood.prefilledUrl,
+            imageIds: serverUserFood.imageIds,
+            barcodes: [],
+            spawnedUserFoodId: nil,
+            spawnedPresetFoodId: nil
+        )
+        
+        self.init(
+            id: id,
+            type: serverUserFood.foodType,
+            name: serverUserFood.name,
+            emoji: serverUserFood.emoji,
+            detail: serverUserFood.detail,
+            brand: serverUserFood.brand,
+            numberOfTimesConsumedGlobally: 0,
+            numberOfTimesConsumed: 0,
+            lastUsedAt: nil,
+            firstUsedAt: nil,
+            info: info,
+            publishStatus: serverUserFood.publishStatus,
+            jsonSyncStatus: .synced,
+            childrenFoods: nil,
+            dataset: nil,
+            barcodes: [],
+            syncStatus: .synced,
+            updatedAt: serverUserFood.updatedAt
+        )
     }
 }
 
@@ -108,7 +175,6 @@ extension PrepDataTypes.Meal {
         else {
             return nil
         }
-        //TODO: Handle Goal
         self.init(
             id: id,
             day: day,

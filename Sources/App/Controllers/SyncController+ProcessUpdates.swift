@@ -31,6 +31,10 @@ extension SyncController {
         /// Now update the entities in the correct order to account for prerequisites
         /// Goal
         /// UserFood
+        if let deviceFoods = updates.foods {
+            try await updateFoods(with: deviceFoods, user: user, db: db)
+        }
+        
         /// Barcode
         /// TokenAward
         /// TokenRedemption
@@ -82,6 +86,24 @@ extension SyncController {
                     let meal = Meal(deviceMeal: deviceMeal, dayId: try day.requireID())
                     try await meal.save(on: db)
                 }
+            }
+        } catch {
+            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        }
+    }
+    
+    func updateFoods(with deviceFoods: [PrepDataTypes.Food], user: User, db: Database) async throws {
+        do {
+            for deviceFood in deviceFoods {
+                
+                /// Foods only ever get inserted or deleted—so we make sure it doesn't exist first
+                let serverFood = try await UserFood.find(deviceFood.id, on: db)
+                guard serverFood == nil else { continue }
+                
+                let userFood = UserFood(deviceFood: deviceFood, userId: try user.requireID())
+                
+                //TODO: Barcodes
+                try await userFood.save(on: db)
             }
         } catch {
             throw ServerSyncError.processUpdatesError(error.localizedDescription)

@@ -36,6 +36,37 @@ final class UserFood: Model, Content {
     
     init() { }
 
+    init(deviceFood: PrepDataTypes.Food, userId: User.IDValue) {
+        self.$user.id = userId
+        self.id = deviceFood.id
+        self.foodType = deviceFood.type
+        self.name = deviceFood.name
+        self.emoji = deviceFood.emoji
+        self.detail = deviceFood.detail
+        self.brand = deviceFood.brand
+        
+        self.amount = deviceFood.info.amount
+        self.serving = deviceFood.info.serving
+        self.nutrients = deviceFood.info.nutrients
+        self.sizes = deviceFood.info.sizes
+        self.density = deviceFood.info.density
+        self.linkUrl = deviceFood.info.linkUrl
+        self.prefilledUrl = deviceFood.info.prefilledUrl
+        self.imageIds = deviceFood.info.imageIds
+
+        self.publishStatus = deviceFood.publishStatus ?? .hidden
+        
+        self.numberOfTimesConsumed = 0
+        self.createdAt = deviceFood.updatedAt
+        self.updatedAt = deviceFood.updatedAt
+
+        self.changes = []
+        
+        //TODO: Bring these back
+        self.$spawnedUserFood.id = spawnedUserFood?.id
+        self.$spawnedPresetFood.id = spawnedPresetFood?.id
+    }
+
     init(_ form: UserFoodCreateForm, for db: Database, userId: User.IDValue) async throws {
         
         do {
