@@ -8,7 +8,7 @@ enum FileLocation {
     func directoryPath(for id: String) -> String? {
         let path = FileManager.default.currentDirectoryPath
         switch self {
-        case .holdingArea(let _):
+        case .holdingArea:
             return "\(path)/Public/Uploads/tmp"
         case .repository(let fileType):
             let suffix = id.suffix(6)
