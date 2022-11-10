@@ -85,13 +85,27 @@ extension SyncController {
     }
 
     func updatedDeviceUser(for syncForm: SyncForm, db: Database) async throws -> PrepDataTypes.User? {
-        /// If we have a `cloudKitId`, use that in case the user just started using a new device
-        guard let deviceUser = syncForm.updates?.user else {
-            return nil
+        
+        let serverUser: App.User?
+        if let deviceUser = syncForm.updates?.user {
+            /// if we were provided with an updated user try and fetch it using that, as we may have a different `cloudKitId` being used on a new device (which will get subsequently updated)
+            guard let user = try await user(forDeviceUser: deviceUser, db: db) else {
+                return nil
+            }
+            serverUser = user
+        } else {
+            /// otherwise, grab the user from the provided user id in the sync form and return it if the `updatedAt` flag is later than the `versionTimestamp`
+            guard let user = try await User.find(syncForm.userId, on: db) else {
+                return nil
+            }
+            guard user.updatedAt > syncForm.versionTimestamp else {
+                return nil
+            }
+            serverUser = user
         }
-        guard let serverUser = try await user(forDeviceUser: deviceUser, db: db) else {
-            return nil
-        }
+        
+        guard let serverUser else { return nil }
+        
         return PrepDataTypes.User(from: serverUser)
     }
 }
