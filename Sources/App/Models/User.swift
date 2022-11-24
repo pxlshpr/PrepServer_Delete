@@ -12,6 +12,7 @@ final class User: Model, Content {
 
     @Field(key: "units") var units: UserUnits
     @OptionalField(key: "body_profile") var bodyProfile: BodyProfile?
+    @OptionalField(key: "body_profile_updated_at") var bodyProfileUpdatedAt: Double?
 
     @Children(for: \.$user) var days: [Day]
     @Children(for: \.$user) var foodUsages: [FoodUsage]
@@ -25,13 +26,15 @@ final class User: Model, Content {
     init(
         cloudKitId: String,
         units: UserUnits = .standard,
-        bodyProfile: BodyProfile? = nil
+        bodyProfile: BodyProfile? = nil,
+        bodyProfileUpdatedAt: Double? = nil
     ) {
         self.id = UUID()
         self.cloudKitId = cloudKitId
         
         self.units = units
         self.bodyProfile = bodyProfile
+        self.bodyProfileUpdatedAt = bodyProfileUpdatedAt
         
         self.createdAt = Date().timeIntervalSince1970
         self.updatedAt = Date().timeIntervalSince1970
@@ -43,6 +46,7 @@ final class User: Model, Content {
         
         self.units = deviceUser.units
         self.bodyProfile = deviceUser.bodyProfile
+        self.bodyProfileUpdatedAt = deviceUser.bodyProfileUpdatedAt
         
         self.createdAt = deviceUser.updatedAt
         self.updatedAt = deviceUser.updatedAt

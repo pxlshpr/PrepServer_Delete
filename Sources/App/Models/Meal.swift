@@ -15,6 +15,7 @@ final class Meal: Model, Content {
     @Field(key: "name") var name: String
     @Field(key: "time") var time: Double
     @OptionalField(key: "marked_as_eaten_at") var markedAsEatenAt: Double?
+    @OptionalField(key: "goal_workout_minutes") var goalWorkoutMinutes: Int?
 
     @Children(for: \.$meal) var foodItems: [FoodItem]
 
@@ -36,5 +37,6 @@ final class Meal: Model, Content {
         self.name = deviceMeal.name
         self.time = deviceMeal.time
         self.markedAsEatenAt = deviceMeal.markedAsEatenAt
+        self.goalWorkoutMinutes = deviceMeal.goalWorkoutMinutes
     }
 }

@@ -13,6 +13,7 @@ struct CreateMeal: AsyncMigration {
             .field("name", .string, .required)
             .field("time", .double, .required)
             .field("marked_as_eaten_at", .double)
+            .field("goal_workout_minutes", .int)
 
             .create()
     }
