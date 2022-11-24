@@ -29,29 +29,41 @@ extension SyncController {
         }
         
         /// Now update the entities in the correct order to account for prerequisites
-        /// Goal
+        /// GoalSet
+        //TODO: GoalSet
+        
         /// UserFood
         if let deviceFoods = updates.foods {
             try await updateFoods(with: deviceFoods, user: user, db: db)
         }
         
         /// Barcode
+        //TODO: Barcode
+        
         /// TokenAward
+        //TODO: TokenAward
+        
         /// TokenRedemption
+        //TODO: TokenRedemption
+        
         /// Day
         if let deviceDays = updates.days {
             try await updateDays(with: deviceDays, user: user, db: db)
         }
         
-        /// EnergyExpenditure
         /// Meal
         if let deviceMeals = updates.meals {
             try await updateMeals(with: deviceMeals, db: db)
         }
 
         /// FoodItem
+        //TODO: FoodItem
+        
         /// FoodUsage
+        //TODO: FoodUsage
+        
         /// QuickMealItem
+        //TODO: QuickMealItem
 
     }
     
@@ -75,19 +87,43 @@ extension SyncController {
                     } else {
                         newDay = nil
                     }
-                    try updateServerMeal(serverMeal, with: deviceMeal, newDayId: newDay?.requireID())
+                    
+                    /// If the `GoalSet`'s don't match, fetch the new one and supply it to the `updateServerMeal` function
+                    let newGoalSet: GoalSet?
+                    if let deviceGoalSetId = deviceMeal.goalSet?.id,
+                       serverMeal.goalSet?.id != deviceGoalSetId
+                    {
+                        guard let goalSet = try await GoalSet.find(deviceGoalSetId, on: db) else {
+                            throw ServerSyncError.goalSetNotFound
+                        }
+                        newGoalSet = goalSet
+                    } else {
+                        newGoalSet = nil
+                    }
+
+                    try updateServerMeal(serverMeal, with: deviceMeal, newDayId: newDay?.requireID(), newGoalSetId: newGoalSet?.requireID())
                     try await serverMeal.update(on: db)
                 } else {
-                    /// If the day doesn't exist, add it
+                    /// If the meal doesn't exist, add it
                     guard let day = try await Day.find(deviceMeal.day.id, on: db) else {
                         throw ServerSyncError.dayNotFound
                     }
                     
-                    //TODO: Check if `goalSetId` exists and supply it here
+                    let goalSet: GoalSet?
+                    /// If we were provided a `GoalSet`, make sure that we can fetch it first before creating the `Meal`
+                    if let goalSetId = deviceMeal.goalSet?.id {
+                        guard let serverGoalSet = try await GoalSet.find(goalSetId, on: db) else {
+                            throw ServerSyncError.goalSetNotFound
+                        }
+                        goalSet = serverGoalSet
+                    } else {
+                        goalSet = nil
+                    }
+
                     let meal = Meal(
                         deviceMeal: deviceMeal,
                         dayId: try day.requireID(),
-                        goalSetId: nil
+                        goalSetId: try goalSet?.requireID()
                     )
                     try await meal.save(on: db)
                 }
@@ -150,7 +186,7 @@ extension SyncController {
                     /// If the day doesn't exist, add it
 
                     let goalSet: GoalSet?
-                    /// If we were provided a `Goal`, make sure that we can fetch it first before creating the `Day`
+                    /// If we were provided a `GoalSet`, make sure that we can fetch it first before creating the `Day`
                     if let goalSetId = deviceDay.goalSet?.id {
                         guard let serverGoalSet = try await GoalSet.find(goalSetId, on: db) else {
                             throw ServerSyncError.goalSetNotFound
@@ -191,9 +227,12 @@ extension SyncController {
         }
     }
     
-    func updateServerMeal(_ serverMeal: Meal, with deviceMeal: PrepDataTypes.Meal, newDayId: Day.IDValue?) throws {
+    func updateServerMeal(_ serverMeal: Meal, with deviceMeal: PrepDataTypes.Meal, newDayId: Day.IDValue?, newGoalSetId: GoalSet.IDValue?) throws {
         if let newDayId {
             serverMeal.$day.id = newDayId
+        }
+        if let newGoalSetId {
+            serverMeal.$goalSet.id = newGoalSetId
         }
         serverMeal.updatedAt = deviceMeal.updatedAt
         serverMeal.name = deviceMeal.name
