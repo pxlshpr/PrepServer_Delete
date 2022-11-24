@@ -107,7 +107,7 @@ final class UserFood: Model, Content {
         self.createdAt = Date().timeIntervalSince1970
         self.updatedAt = Date().timeIntervalSince1970
 
-        self.foodType = .rawFood
+        self.foodType = .food
         self.name = form.name
         self.emoji = form.emoji
         self.amount = form.info.amount

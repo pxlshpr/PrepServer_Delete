@@ -19,7 +19,7 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreateUser())
     
     /// prerequisite: User
-    app.migrations.add(CreateGoal())
+    app.migrations.add(CreateGoalSet())
     
     /// prerequisite: User, PresetFood
     app.migrations.add(CreateUserFood())
@@ -36,9 +36,6 @@ public func configure(_ app: Application) throws {
     /// prerequisite: User, Goal
     app.migrations.add(CreateDay())
     
-    /// prerequisite: Day
-    app.migrations.add(CreateEnergyExpenditure())
-
     /// prerequisite: Day
     app.migrations.add(CreateMeal())
 

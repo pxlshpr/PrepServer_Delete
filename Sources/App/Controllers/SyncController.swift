@@ -98,7 +98,7 @@ enum ServerSyncError: Error {
     case couldNotGetUserIdForCloudKitId(String)
     case userNotFound
     case dayNotFound
-    case goalNotFound
+    case goalSetNotFound
 }
 
 extension SyncForm: Content {

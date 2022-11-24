@@ -7,6 +7,7 @@ final class Meal: Model, Content {
     
     @ID(key: .id) var id: UUID?
     @Parent(key: "day_id") var day: Day
+    @OptionalParent(key: "goal_set_id") var goalSet: GoalSet?
     @Field(key: "created_at") var createdAt: Double
     @Field(key: "updated_at") var updatedAt: Double
     @OptionalField(key: "deleted_at") var deletedAt: Double?
@@ -19,11 +20,15 @@ final class Meal: Model, Content {
 
     init() { }
     
-    init(deviceMeal: PrepDataTypes.Meal, dayId: Day.IDValue) {
+    init(
+        deviceMeal: PrepDataTypes.Meal,
+        dayId: Day.IDValue,
+        goalSetId: GoalSet.IDValue?
+    ) {
         self.id = deviceMeal.id
         self.$day.id = dayId
+        self.$goalSet.id = goalSetId
         
-        print("Saving meal \(deviceMeal.name) with \(deviceMeal.updatedAt)")
         self.createdAt = deviceMeal.updatedAt
         self.updatedAt = deviceMeal.updatedAt
         self.deletedAt = nil

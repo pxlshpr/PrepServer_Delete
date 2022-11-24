@@ -8,10 +8,8 @@ struct CreateUser: AsyncMigration {
             .field("created_at", .double, .required)
             .field("updated_at", .double, .required)
 
-            .field("preferred_energy_unit", .int16, .required)
-            .field("prefers_metric_units", .bool, .required)
-            .field("explicit_volume_units", .json, .required)
-            .field("body_measurements", .json)
+            .field("units", .json, .required)
+            .field("body_profile", .json)
         
             .create()
     }

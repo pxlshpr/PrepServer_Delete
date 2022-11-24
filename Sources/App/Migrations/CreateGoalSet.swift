@@ -1,8 +1,8 @@
 import Fluent
 
-struct CreateGoal: AsyncMigration {
+struct CreateGoalSet: AsyncMigration {
     func prepare(on database: Database) async throws {
-        try await database.schema("goals")
+        try await database.schema("goal_sets")
             .id()
             .field("user_id", .uuid, .references(User.schema, .id))
             .field("created_at", .double, .required)
@@ -10,15 +10,14 @@ struct CreateGoal: AsyncMigration {
             .field("deleted_at", .double)
 
             .field("name", .string, .required)
+            .field("emoji", .string, .required)
             .field("is_for_meal", .bool, .required)
-            .field("energy", .json)
-            .field("macros", .array(of: .json))
-            .field("micros", .array(of: .json))
+            .field("goals", .array(of: .json), .required)
 
             .create()
     }
     
     func revert(on database: Database) async throws {
-        try await database.schema("goals").delete()
+        try await database.schema("goal_sets").delete()
     }
 }

@@ -197,14 +197,12 @@ extension PrepDataTypes.Day {
             return nil
         }
         //TODO: Handle Goal
+        //TODO: Check that bodyProfile is being handled properly
         self.init(
             id: id,
             calendarDayString: serverDay.calendarDayString,
-            goal: nil,
-            addEnergyExpendituresToGoal: serverDay.addEnergyExpendituresToGoal,
-            goalBonusEnergySplit: serverDay.goalBonusEnergySplit,
-            goalBonusEnergySplitRatio: serverDay.goalBonusEnergySplitRatio,
-            energyExpenditures: [],
+            goalSet: nil,
+            bodyProfile: serverDay.bodyProfile,
             meals: [],
             syncStatus: .synced,
             updatedAt: serverDay.updatedAt
@@ -241,10 +239,8 @@ extension PrepDataTypes.User {
         self.init(
             id: id,
             cloudKitId: serverUser.cloudKitId,
-            preferredEnergyUnit: serverUser.preferredEnergyUnit,
-            prefersMetricUnits: serverUser.prefersMetricUnit,
-            explicitVolumeUnits: serverUser.explicitVolumeUnits,
-            bodyMeasurements: serverUser.bodyMeasurements,
+            units: serverUser.units,
+            bodyProfile: serverUser.bodyProfile,
             syncStatus: .synced,
             updatedAt: serverUser.updatedAt
         )
