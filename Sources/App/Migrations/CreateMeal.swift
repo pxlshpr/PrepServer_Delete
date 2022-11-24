@@ -5,7 +5,7 @@ struct CreateMeal: AsyncMigration {
         try await database.schema("meals")
             .id()
             .field("day_id", .string, .references(Day.schema, .id), .required)
-            .field("goal_set_id", .string, .references(GoalSet.schema, .id))
+            .field("goal_set_id", .uuid, .references(GoalSet.schema, .id))
             .field("created_at", .double, .required)
             .field("updated_at", .double, .required)
             .field("deleted_at", .double)
