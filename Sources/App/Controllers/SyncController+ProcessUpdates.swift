@@ -177,7 +177,7 @@ extension SyncController {
                     let userFood: UserFood?
                     let presetFood: PresetFood?
                     
-                    guard let foodTuple = try await findFood(with: deviceFoodItem.id, on: db) else {
+                    guard let foodTuple = try await findFood(with: deviceFoodItem.food.id, on: db) else {
                         throw ServerSyncError.foodNotFound
                     }
                     if let serverFood = foodTuple.0 {

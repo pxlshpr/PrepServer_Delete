@@ -111,24 +111,37 @@ extension SyncController {
             .filter(Day.self, \.$user.$id == userId)
             .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
-            .with(\.$meal)
-            .with(\.$userFood)
-            .with(\.$presetFood)
+            .with(\.$meal) { meal in
+                meal.with(\.$day)
+            }
+            .with(\.$userFood) { userFood in
+                userFood.with(\.$barcodes)
+            }
+            .with(\.$presetFood) { presetFood in
+                presetFood.with(\.$barcodes)
+            }
             .all()
             .compactMap { foodItem in
-                PrepDataTypes.FoodItem(from: foodItem)
+                PrepDataTypes.FoodItem(from: foodItem, db: db)
             }
         
         let childFoodItems = try await FoodItem.query(on: db)
             .join(UserFood.self, on: \FoodItem.$parentUserFood.$id == \UserFood.$id)
             .filter(UserFood.self, \.$user.$id == userId)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
-            .with(\.$parentUserFood)
-            .with(\.$userFood)
-            .with(\.$presetFood)
+            .with(\.$parentUserFood) { parentUserFood in
+                parentUserFood.with(\.$barcodes)
+            }
+            .with(\.$userFood) { userFood in
+                userFood.with(\.$barcodes)
+            }
+            .with(\.$presetFood) { presetFood in
+                presetFood.with(\.$barcodes)
+            }
             .all()
             .compactMap { foodItem in
-                PrepDataTypes.FoodItem(from: foodItem)
+                
+                PrepDataTypes.FoodItem(from: foodItem, db: db)
             }
         return mealFoodItems + childFoodItems
     }
@@ -363,7 +376,8 @@ extension PrepDataTypes.Meal {
 }
 
 extension PrepDataTypes.FoodItem {
-    init?(from serverFoodItem: FoodItem) {
+    
+    init?(from serverFoodItem: FoodItem, db: Database) {
         guard let id = serverFoodItem.id else {
             return nil
         }

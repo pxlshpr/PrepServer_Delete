@@ -5,7 +5,8 @@ import PrepDataTypes
 struct SyncController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let sync = routes.grouped("sync")
-        sync.post(use: performSync)
+//        sync.post(use: performSync)
+        sync.on(.POST, "", body: .collect(maxSize: "20mb"), use: performSync)
         sync.on(.POST, "image", body: .collect(maxSize: "20mb"), use: saveImage)
         sync.on(.POST, "json", body: .collect(maxSize: "20mb"), use: saveJSON)
     }
@@ -96,11 +97,18 @@ enum ServerSyncError: Error {
     case newCloudKitIdReceivedForUser(String)
     case processUpdatesError(String? = nil)
     case couldNotGetUserIdForCloudKitId(String)
+    
     case userNotFound
     case dayNotFound
     case goalSetNotFound
-    case foodNotFound
+    case foodNotFound    
     case mealNotFound
+    case foodItemWithoutUserFoodOrPresetFood
+    case userFoodNotFound
+    case presetFoodNotFound
+    
+    case couldNotCreateFood
+    case missingId
 }
 
 extension SyncForm: Content {
