@@ -9,11 +9,15 @@ extension SyncController {
         let days = try await updatedDays(for: syncForm, db: db)
         let meals = try await updatedMeals(for: syncForm, db: db)
         let foods = try await updatedUserFoods(for: syncForm, db: db)
+//        let foodItems = try await updatedFoodItems(for: syncForm, db: db)
+//        let goalSets = try await updatedGoalSets(for: syncForm, db: db)
         
         return SyncForm.Updates(
             user: try await updatedDeviceUser(for: syncForm, db: db),
             days: days,
             foods: foods,
+//            foodItems: foodItems,
+//            goalSets: goalSets,
             meals: meals
         )
     }
@@ -83,7 +87,53 @@ extension SyncController {
 
         return meals
     }
+    
+    func updatedGoalSets(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.GoalSet]? {
+//        let userId = try await userId(from: syncForm, db: db)
+//        return try await UserFood.query(on: db)
+//            .filter(\.$user.$id == userId)
+//            .filter(\.$updatedAt > syncForm.versionTimestamp)
+//            .with(\.$barcodes)
+//            .all()
+//            .compactMap { userFood in
+//                PrepDataTypes.Food(from: userFood)
+//            }
+        return []
+    }
+    
+    func updatedFoodItems(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.FoodItem]? {
+        /// Similar to meals, get all the food items that have an attached meal within the requested date window
+        /// Otherwise, if it has a parent food, return all of them irrespective of time
+        /// So we need to create two separate queries here, and merge the results into one array
 
+        let userId = try await userId(from: syncForm, db: db)
+        let mealFoodItems = try await FoodItem.query(on: db)
+            .join(Meal.self, on: \FoodItem.$meal.$id == \Meal.$id)
+            .join(Day.self, on: \Meal.$day.$id == \Day.$id)
+            .filter(Day.self, \.$user.$id == userId)
+            .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
+            .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .with(\.$meal)
+            .with(\.$userFood)
+            .with(\.$presetFood)
+            .all()
+            .compactMap { foodItem in
+                PrepDataTypes.FoodItem(from: foodItem)
+            }
+        
+        let childFoodItems = try await FoodItem.query(on: db)
+            .join(UserFood.self, on: \FoodItem.$parentUserFood.$id == \UserFood.$id)
+            .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .with(\.$parentUserFood)
+            .with(\.$userFood)
+            .with(\.$presetFood)
+            .all()
+            .compactMap { foodItem in
+                PrepDataTypes.FoodItem(from: foodItem)
+            }
+        return mealFoodItems + childFoodItems
+    }
+    
     func updatedDeviceUser(for syncForm: SyncForm, db: Database) async throws -> PrepDataTypes.User? {
         
         let serverUser: App.User?
@@ -189,6 +239,71 @@ extension PrepDataTypes.Food {
             updatedAt: serverUserFood.updatedAt
         )
     }
+    
+    init?(from serverPresetFood: PresetFood) {
+        guard let id = serverPresetFood.id else {
+            return nil
+        }
+
+        //TODO: Get these from the `FoodUsage`
+        /// [ ] `numberOfTimesConsumedGlobally`
+        /// [ ] `numberOfTimesConsumed`
+        /// [ ] `lastUsedAt`
+        /// [ ] `firstUsedAt`
+
+        //TODO: Construct this
+        /// [ ] `barcodes`
+
+        //TODO: Make sure these are included in the query and set
+        /// [ ] `spawnedUserFoodId`
+        /// [ ] `spawnedPresetFoodId`
+
+        //TODO: Revist these and check that we're returning the correct values
+        /// [ ] `jsonSyncStatus`
+        /// [ ] `childrenFoods`
+        /// [ ] `dataSet`
+
+        let barcodes: [PrepDataTypes.Barcode] = serverPresetFood.barcodes.compactMap {
+            PrepDataTypes.Barcode(from: $0)
+        }
+        
+        let foodBarcodes = barcodes.map {
+            FoodBarcode(payload: $0.payload, symbology: $0.symbology)
+        }
+
+        let info = FoodInfo(
+            amount: serverPresetFood.amount,
+            serving: serverPresetFood.serving,
+            nutrients: serverPresetFood.nutrients,
+            sizes: serverPresetFood.sizes,
+            density: serverPresetFood.density,
+            barcodes: foodBarcodes,
+            spawnedUserFoodId: nil,
+            spawnedPresetFoodId: nil
+        )
+        
+        
+        self.init(
+            id: id,
+            type: .food,
+            name: serverPresetFood.name,
+            emoji: serverPresetFood.emoji,
+            detail: serverPresetFood.detail,
+            brand: serverPresetFood.brand,
+            numberOfTimesConsumedGlobally: 0,
+            numberOfTimesConsumed: 0,
+            lastUsedAt: nil,
+            firstUsedAt: nil,
+            info: info,
+            publishStatus: nil,
+            jsonSyncStatus: .synced,
+            childrenFoods: nil,
+            dataset: serverPresetFood.dataset,
+            barcodes: barcodes,
+            syncStatus: .synced,
+            updatedAt: serverPresetFood.updatedAt
+        )
+    }
 }
 
 extension PrepDataTypes.Day {
@@ -226,6 +341,60 @@ extension PrepDataTypes.Meal {
             foodItems: [],
             syncStatus: .synced,
             updatedAt: serverMeal.updatedAt,
+            deletedAt: nil
+        )
+    }
+}
+
+extension PrepDataTypes.FoodItem {
+    init?(from serverFoodItem: FoodItem) {
+        guard let id = serverFoodItem.id else {
+            return nil
+        }
+
+        /// Get the `Food` converted from either the  server's `UserFood` or `PresetFood`
+        let food: Food
+        if let userFood = serverFoodItem.userFood {
+            guard let foodFromUserFood = PrepDataTypes.Food(from: userFood) else {
+                return nil
+            }
+            food = foodFromUserFood
+        } else {
+            guard
+                let presetFood = serverFoodItem.presetFood,
+                let foodFromPresetFood = PrepDataTypes.Food(from: presetFood)
+            else {
+                return nil
+            }
+            food = foodFromPresetFood
+        }
+
+        /// If we have a meal, get it
+        let meal: PrepDataTypes.Meal?
+        if let serverMeal = serverFoodItem.meal {
+            meal = PrepDataTypes.Meal(from: serverMeal)
+        } else {
+            meal = nil
+        }
+
+        /// If we have a parent food, get it
+        let parentFood: PrepDataTypes.Food?
+        if let serverParentUserFood = serverFoodItem.parentUserFood {
+            parentFood = PrepDataTypes.Food(from: serverParentUserFood)
+        } else {
+            parentFood = nil
+        }
+
+        self.init(
+            id: id,
+            food: food,
+            parentFood: parentFood,
+            meal: meal,
+            amount: serverFoodItem.amount,
+            markedAsEatenAt: serverFoodItem.markedAsEatenAt,
+            sortPosition: Int(serverFoodItem.sortPosition),
+            syncStatus: .synced,
+            updatedAt: serverFoodItem.updatedAt,
             deletedAt: nil
         )
     }

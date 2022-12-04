@@ -99,6 +99,8 @@ enum ServerSyncError: Error {
     case userNotFound
     case dayNotFound
     case goalSetNotFound
+    case foodNotFound
+    case mealNotFound
 }
 
 extension SyncForm: Content {

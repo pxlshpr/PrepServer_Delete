@@ -13,18 +13,36 @@ final class GoalSet: Model, Content {
 
     @Field(key: "name") var name: String
     @Field(key: "emoji") var emoji: String
-    @Field(key: "is_for_meal") var isForMeal: Bool
-    @Field(key: "goals") var goals: [ServerGoal]
+    @Field(key: "type") var type: GoalSetType
+    @Field(key: "goals") var goals: [Goal]
 
     init() { }
 
     init(id: UUID? = nil) {
         self.id = id
     }
-}
-
-struct ServerGoal: Codable {
-    let type: GoalTypeValue
-    let lowerBound: Double?
-    let upperBound: Double?
+    
+    init(
+        deviceGoalSet: PrepDataTypes.GoalSet,
+        userId: User.IDValue
+    ) {
+        self.id = deviceGoalSet.id
+        self.$user.id = userId
+        
+        self.createdAt = deviceGoalSet.updatedAt
+        self.updatedAt = deviceGoalSet.updatedAt
+        
+        self.name = deviceGoalSet.name
+        self.emoji = deviceGoalSet.emoji
+        self.type = deviceGoalSet.type
+        self.goals = deviceGoalSet.goals
+    }
+    
+    func update(with deviceGoalSet: PrepDataTypes.GoalSet) throws {
+        self.name = deviceGoalSet.name
+        self.emoji = deviceGoalSet.emoji
+        self.type = deviceGoalSet.type
+        self.goals = deviceGoalSet.goals
+        self.updatedAt = deviceGoalSet.updatedAt
+    }
 }

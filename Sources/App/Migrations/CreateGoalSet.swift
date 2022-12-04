@@ -11,7 +11,7 @@ struct CreateGoalSet: AsyncMigration {
 
             .field("name", .string, .required)
             .field("emoji", .string, .required)
-            .field("is_for_meal", .bool, .required)
+            .field("type", .int16, .required)
             .field("goals", .array(of: .json), .required)
 
             .create()

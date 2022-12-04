@@ -29,8 +29,11 @@ extension SyncController {
         }
         
         /// Now update the entities in the correct order to account for prerequisites
+
         /// GoalSet
-        //TODO: GoalSet
+        if let deviceGoalSets = updates.goalSets {
+            try await updateGoalSets(with: deviceGoalSets, user: user, db: db)
+        }
         
         /// UserFood
         if let deviceFoods = updates.foods {
@@ -58,6 +61,9 @@ extension SyncController {
 
         /// FoodItem
         //TODO: FoodItem
+        if let foodItems = updates.foodItems {
+            try await updateFoodItems(with: foodItems, db: db)
+        }
         
         /// FoodUsage
         //TODO: FoodUsage
@@ -65,6 +71,168 @@ extension SyncController {
         /// QuickMealItem
         //TODO: QuickMealItem
 
+    }
+    
+    
+    func updateGoalSets(with deviceGoalSets: [PrepDataTypes.GoalSet], user: User, db: Database) async throws {
+        do {
+            for deviceGoalSet in deviceGoalSets {
+                let serverGoalSet = try await GoalSet.query(on: db)
+                    .filter(\.$id == deviceGoalSet.id)
+                    .first()
+
+                /// If it exists, update it
+                if let serverGoalSet {
+                    try serverGoalSet.update(with: deviceGoalSet)
+                    try await serverGoalSet.update(on: db)
+                } else {
+                    let goalSet = GoalSet(deviceGoalSet: deviceGoalSet, userId: try user.requireID())
+                    try await goalSet.save(on: db)
+                }
+            }
+        }  catch {
+            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        }
+    }
+    
+    func updateFoodItems(with deviceFoodItems: [PrepDataTypes.FoodItem], db: Database) async throws {
+        do {
+            for deviceFoodItem in deviceFoodItems {
+                let serverFoodItem = try await FoodItem.query(on: db)
+                    .filter(\.$id == deviceFoodItem.id)
+                    .with(\.$userFood)
+                    .with(\.$presetFood)
+                    .with(\.$parentUserFood)
+                    .with(\.$meal)
+                    .first()
+                
+                /// If it exists, update it
+                if let serverFoodItem {
+                    
+                    let newUserFood: UserFood?
+                    let newPresetFood: PresetFood?
+                    /// If the `Food` doesn't match (check both `UserFood` and `PresetFood` for a matching `id`)
+                    if (deviceFoodItem.food.id != serverFoodItem.userFood?.id
+                        || deviceFoodItem.food.id != serverFoodItem.presetFood?.id)
+                    {
+                        /// Try getting the `UserFood first`
+                        guard let foodTuple = try await findFood(with: deviceFoodItem.food.id, on: db) else {
+                            throw ServerSyncError.foodNotFound
+                        }
+                        if let userFood = foodTuple.0 {
+                            newUserFood = userFood
+                            newPresetFood = nil
+                        } else {
+                            newUserFood = nil
+                            newPresetFood = foodTuple.1
+                        }
+                    } else {
+                        newUserFood = nil
+                        newPresetFood = nil
+                    }
+                    
+                    let newParentUserFood: UserFood?
+                    if let deviceParentFoodId = deviceFoodItem.parentFood?.id,
+                       let serverParentFoodId = serverFoodItem.parentUserFood?.id,
+                       serverParentFoodId != deviceParentFoodId
+                    {
+                        /// Find the new parent `UserFood`
+                        guard let parentUserFood = try await UserFood.find(deviceParentFoodId, on: db) else {
+                            throw ServerSyncError.foodNotFound
+                        }
+                        newParentUserFood = parentUserFood
+                    } else {
+                        newParentUserFood = nil
+                    }
+
+                    let newMeal: Meal?
+                    if let deviceMealId = deviceFoodItem.meal?.id,
+                       let serverMealId = serverFoodItem.meal?.id,
+                       serverMealId != deviceMealId
+                    {
+                        /// Find the new `Meal`
+                        guard let meal = try await Meal.find(deviceMealId, on: db) else {
+                            throw ServerSyncError.mealNotFound
+                        }
+                        newMeal = meal
+                    } else {
+                        newMeal = nil
+                    }
+                    
+                    try serverFoodItem.update(
+                        with: deviceFoodItem,
+                        newUserFoodId: try newUserFood?.requireID(),
+                        newPresetFoodId: try newPresetFood?.requireID(),
+                        newParentUserFoodId: try newParentUserFood?.requireID(),
+                        newMealId: try newMeal?.requireID()
+                    )
+                    
+                    try await serverFoodItem.update(on: db)
+                    
+                } else {
+                    
+                    /// Otherwise, create it
+                    ///
+                    ///
+                    let userFood: UserFood?
+                    let presetFood: PresetFood?
+                    
+                    guard let foodTuple = try await findFood(with: deviceFoodItem.id, on: db) else {
+                        throw ServerSyncError.foodNotFound
+                    }
+                    if let serverFood = foodTuple.0 {
+                        userFood = serverFood
+                        presetFood = nil
+                    } else {
+                        userFood = nil
+                        presetFood = foodTuple.1
+                    }
+                    
+                    let parentUserFood: UserFood?
+                    if let deviceParentFoodId = deviceFoodItem.parentFood?.id {
+                        guard let serverParentUserFood = try await UserFood.find(deviceParentFoodId, on: db) else {
+                            throw ServerSyncError.foodNotFound
+                        }
+                        parentUserFood = serverParentUserFood
+                    } else {
+                        parentUserFood = nil
+                    }
+
+                    let meal: Meal?
+                    if let deviceMealId = deviceFoodItem.meal?.id {
+                        guard let serverMeal = try await Meal.find(deviceMealId, on: db) else {
+                            throw ServerSyncError.mealNotFound
+                        }
+                        meal = serverMeal
+                    } else {
+                        meal = nil
+                    }
+
+                    let foodItem = FoodItem(
+                        deviceFoodItem: deviceFoodItem,
+                        userFoodId: try userFood?.requireID(),
+                        presetFoodId: try presetFood?.requireID(),
+                        parentUserFoodId: try parentUserFood?.requireID(),
+                        mealId: try meal?.requireID()
+                    )
+                    try await foodItem.save(on: db)
+
+                }
+            }
+        } catch {
+            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        }
+    }
+    
+    //TODO: Move this elsewhere when used by something outside this
+    func findFood(with id: UUID, on db: Database) async throws -> (UserFood?, PresetFood?)? {
+        if let userFood = try await UserFood.find(id, on: db) {
+            return (userFood, nil)
+        }
+        if let presetFood = try await PresetFood.find(id, on: db) {
+            return (nil, presetFood)
+        }
+        return nil
     }
     
     func updateMeals(with deviceMeals: [PrepDataTypes.Meal], db: Database) async throws {
@@ -252,7 +420,7 @@ extension SyncController {
         serverDay.bodyProfile = deviceDay.bodyProfile
         serverDay.updatedAt = deviceDay.updatedAt
     }
-    
+
     func updateServerUser(_ serverUser: User, with deviceUser: PrepDataTypes.User) throws {
         
         if deviceUser.id != serverUser.id {
