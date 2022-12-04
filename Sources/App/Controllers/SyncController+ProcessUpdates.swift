@@ -417,10 +417,7 @@ extension SyncController {
     }
 
     func updateServerDay(_ serverDay: Day, with deviceDay: PrepDataTypes.Day, newGoalSetId: GoalSet.IDValue?) throws {
-        if let newGoalSetId {
-            serverDay.$goalSet.id = newGoalSetId
-        }
-        
+        serverDay.$goalSet.id = newGoalSetId
         serverDay.bodyProfile = deviceDay.bodyProfile
         serverDay.updatedAt = deviceDay.updatedAt
     }
