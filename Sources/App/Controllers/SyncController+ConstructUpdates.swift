@@ -9,15 +9,15 @@ extension SyncController {
         let days = try await updatedDays(for: syncForm, db: db)
         let meals = try await updatedMeals(for: syncForm, db: db)
         let foods = try await updatedUserFoods(for: syncForm, db: db)
-//        let foodItems = try await updatedFoodItems(for: syncForm, db: db)
-//        let goalSets = try await updatedGoalSets(for: syncForm, db: db)
+        let foodItems = try await updatedFoodItems(for: syncForm, db: db)
+        let goalSets = try await updatedGoalSets(for: syncForm, db: db)
         
         return SyncForm.Updates(
             user: try await updatedDeviceUser(for: syncForm, db: db),
             days: days,
             foods: foods,
-//            foodItems: foodItems,
-//            goalSets: goalSets,
+            foodItems: foodItems,
+            goalSets: goalSets,
             meals: meals
         )
     }
@@ -89,16 +89,14 @@ extension SyncController {
     }
     
     func updatedGoalSets(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.GoalSet]? {
-//        let userId = try await userId(from: syncForm, db: db)
-//        return try await UserFood.query(on: db)
-//            .filter(\.$user.$id == userId)
-//            .filter(\.$updatedAt > syncForm.versionTimestamp)
-//            .with(\.$barcodes)
-//            .all()
-//            .compactMap { userFood in
-//                PrepDataTypes.Food(from: userFood)
-//            }
-        return []
+        let userId = try await userId(from: syncForm, db: db)
+        return try await GoalSet.query(on: db)
+            .filter(\.$user.$id == userId)
+            .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .all()
+            .compactMap { goalSet in
+                PrepDataTypes.GoalSet(from: goalSet)
+            }
     }
     
     func updatedFoodItems(for syncForm: SyncForm, db: Database) async throws -> [PrepDataTypes.FoodItem]? {
@@ -123,6 +121,7 @@ extension SyncController {
         
         let childFoodItems = try await FoodItem.query(on: db)
             .join(UserFood.self, on: \FoodItem.$parentUserFood.$id == \UserFood.$id)
+            .filter(UserFood.self, \.$user.$id == userId)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .with(\.$parentUserFood)
             .with(\.$userFood)
@@ -302,6 +301,23 @@ extension PrepDataTypes.Food {
             barcodes: barcodes,
             syncStatus: .synced,
             updatedAt: serverPresetFood.updatedAt
+        )
+    }
+}
+
+extension PrepDataTypes.GoalSet {
+    init?(from serverGoalSet: GoalSet) {
+        guard let id = serverGoalSet.id else {
+            return nil
+        }
+        self.init(
+            id: id,
+            type: serverGoalSet.type,
+            name: serverGoalSet.name,
+            emoji: serverGoalSet.emoji,
+            goals: serverGoalSet.goals,
+            syncStatus: .synced,
+            updatedAt: serverGoalSet.updatedAt
         )
     }
 }
