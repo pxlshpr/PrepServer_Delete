@@ -83,6 +83,7 @@ final class FoodItem: Model, Content {
         self.sortPosition = Int16(deviceFoodItem.sortPosition)
         self.markedAsEatenAt = deviceFoodItem.markedAsEatenAt
         
+        print("🤡 Updating FoodItem with \(deviceFoodItem.updatedAt)")
         self.updatedAt = deviceFoodItem.updatedAt
     }
 
