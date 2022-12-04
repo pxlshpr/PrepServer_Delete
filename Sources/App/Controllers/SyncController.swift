@@ -108,6 +108,7 @@ enum ServerSyncError: Error {
     case presetFoodNotFound
     
     case couldNotCreateFood
+    case couldNotCreateGoalSet
     case missingId
 }
 

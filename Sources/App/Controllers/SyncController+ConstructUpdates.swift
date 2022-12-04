@@ -59,6 +59,7 @@ extension SyncController {
             .filter(\.$user.$id == userId)
             .filter(\.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
+            .with(\.$goalSet)
             .all()
             .compactMap { day in
                 PrepDataTypes.Day(from: day)
@@ -73,6 +74,7 @@ extension SyncController {
             .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .with(\.$day)
+            .with(\.$goalSet)
             .all()
             .compactMap { meal in
                 PrepDataTypes.Meal(from: meal)
@@ -112,7 +114,9 @@ extension SyncController {
             .filter(Day.self, \.$calendarDayString ~~ syncForm.requestedCalendarDayStrings)
             .filter(\.$updatedAt > syncForm.versionTimestamp)
             .with(\.$meal) { meal in
-                meal.with(\.$day)
+                meal
+                    .with(\.$day)
+                    .with(\.$goalSet)
             }
             .with(\.$userFood) { userFood in
                 userFood.with(\.$barcodes)
@@ -340,12 +344,20 @@ extension PrepDataTypes.Day {
         guard let id = serverDay.id else {
             return nil
         }
-        //TODO: Handle Goal
+        
+        let goalSet: PrepDataTypes.GoalSet?
+        if let serverGoalSet = serverDay.goalSet,
+           let deviceGoalSet = PrepDataTypes.GoalSet(from: serverGoalSet) {
+            goalSet = deviceGoalSet
+        } else {
+            goalSet = nil
+        }
+        
         //TODO: Check that bodyProfile is being handled properly
         self.init(
             id: id,
             calendarDayString: serverDay.calendarDayString,
-            goalSet: nil,
+            goalSet: goalSet,
             bodyProfile: serverDay.bodyProfile,
             meals: [],
             syncStatus: .synced,
@@ -361,12 +373,24 @@ extension PrepDataTypes.Meal {
         else {
             return nil
         }
+        
+        let goalSet: PrepDataTypes.GoalSet?
+        if let serverGoalSet = serverMeal.goalSet,
+           let deviceGoalSet = PrepDataTypes.GoalSet(from: serverGoalSet)
+        {
+            goalSet = deviceGoalSet
+        } else {
+            goalSet = nil
+        }
+
         self.init(
             id: id,
             day: day,
             name: serverMeal.name,
             time: serverMeal.time,
             markedAsEatenAt: serverMeal.markedAsEatenAt,
+            goalSet: goalSet,
+            goalWorkoutMinutes: serverMeal.goalWorkoutMinutes,
             foodItems: [],
             syncStatus: .synced,
             updatedAt: serverMeal.updatedAt,

@@ -337,12 +337,16 @@ extension SyncController {
                 if let serverDay {
                     /// If the `GoalSet`'s don't match, fetch the new one and supply it to the `updateServerDay` function
                     let newGoalSet: GoalSet?
+                    print("🌈🌈🌈 Updating serverDay")
+                    print("    deviceDay.goalSet?.id: \(deviceDay.goalSet?.id)")
+                    print("    serverDay.goalSet?.id: \(serverDay.goalSet?.id)")
                     if let deviceGoalSetId = deviceDay.goalSet?.id,
                        serverDay.goalSet?.id != deviceGoalSetId
                     {
                         guard let goalSet = try await GoalSet.find(deviceGoalSetId, on: db) else {
                             throw ServerSyncError.goalSetNotFound
                         }
+                        print("    Found goal set")
                         newGoalSet = goalSet
                     } else {
                         newGoalSet = nil
