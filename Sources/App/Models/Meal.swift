@@ -60,4 +60,10 @@ extension Meal {
         
         self.updatedAt = Date().timeIntervalSince1970
     }
+    
+    func softDelete() {
+        let timestamp = Date().timeIntervalSince1970
+        self.deletedAt = timestamp
+        self.updatedAt = timestamp
+    }
 }
