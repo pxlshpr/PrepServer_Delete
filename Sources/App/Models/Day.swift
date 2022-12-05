@@ -27,10 +27,22 @@ final class Day: Model, Content {
         self.$user.id = userId
         self.$goalSet.id = goalSetId
         
-        self.createdAt = deviceDay.updatedAt
-        self.updatedAt = deviceDay.updatedAt
-       
+//        self.createdAt = deviceDay.updatedAt
+//        self.updatedAt = deviceDay.updatedAt
+        let timestamp = Date().timeIntervalSince1970
+        self.createdAt = timestamp
+        self.updatedAt = timestamp
+
         self.calendarDayString = deviceDay.calendarDayString
         self.bodyProfile = deviceDay.bodyProfile
+    }
+}
+
+extension Day {
+    func update(with deviceDay: PrepDataTypes.Day, newGoalSetId: GoalSet.IDValue?) throws {
+        self.$goalSet.id = newGoalSetId
+        self.bodyProfile = deviceDay.bodyProfile
+//        serverDay.updatedAt = deviceDay.updatedAt
+        self.updatedAt = Date().timeIntervalSince1970
     }
 }

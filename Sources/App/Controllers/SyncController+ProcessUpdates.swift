@@ -343,13 +343,13 @@ extension SyncController {
                         guard let goalSet = try await GoalSet.find(deviceGoalSetId, on: db) else {
                             throw ServerSyncError.goalSetNotFound
                         }
-                        print("    Found goal set")
                         newGoalSet = goalSet
                     } else {
                         newGoalSet = nil
                     }
 
-                    try updateServerDay(serverDay, with: deviceDay, newGoalSetId: newGoalSet?.requireID())
+//                    try updateServerDay(serverDay, with: deviceDay, newGoalSetId: newGoalSet?.requireID())
+                    try serverDay.update(with: deviceDay, newGoalSetId: newGoalSet?.requireID())
                     try await serverDay.update(on: db)
                 } else {
                     /// If the day doesn't exist, add it
@@ -411,12 +411,6 @@ extension SyncController {
         } else {
             serverMeal.markedAsEatenAt = nil
         }
-    }
-
-    func updateServerDay(_ serverDay: Day, with deviceDay: PrepDataTypes.Day, newGoalSetId: GoalSet.IDValue?) throws {
-        serverDay.$goalSet.id = newGoalSetId
-        serverDay.bodyProfile = deviceDay.bodyProfile
-        serverDay.updatedAt = deviceDay.updatedAt
     }
 
     func updateServerUser(_ serverUser: User, with deviceUser: PrepDataTypes.User) throws {
