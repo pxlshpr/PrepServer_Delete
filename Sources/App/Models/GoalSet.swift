@@ -29,8 +29,9 @@ final class GoalSet: Model, Content {
         self.id = deviceGoalSet.id
         self.$user.id = userId
         
-        self.createdAt = deviceGoalSet.updatedAt
-        self.updatedAt = deviceGoalSet.updatedAt
+        let timestamp = Date().timeIntervalSince1970
+        self.createdAt = timestamp
+        self.updatedAt = timestamp
         
         self.name = deviceGoalSet.name
         self.emoji = deviceGoalSet.emoji
@@ -43,6 +44,6 @@ final class GoalSet: Model, Content {
         self.emoji = deviceGoalSet.emoji
         self.type = deviceGoalSet.type
         self.goals = deviceGoalSet.goals
-        self.updatedAt = deviceGoalSet.updatedAt
+        self.updatedAt = Date().timeIntervalSince1970
     }
 }

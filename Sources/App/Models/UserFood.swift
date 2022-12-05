@@ -57,8 +57,10 @@ final class UserFood: Model, Content {
         self.publishStatus = deviceFood.publishStatus ?? .hidden
         
         self.numberOfTimesConsumed = 0
-        self.createdAt = deviceFood.updatedAt
-        self.updatedAt = deviceFood.updatedAt
+        
+        let timestamp = Date().timeIntervalSince1970
+        self.createdAt = timestamp
+        self.updatedAt = timestamp
 
         self.changes = []
         

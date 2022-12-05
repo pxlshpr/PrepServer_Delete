@@ -30,13 +30,34 @@ final class Meal: Model, Content {
         self.$day.id = dayId
         self.$goalSet.id = goalSetId
         
-        self.createdAt = deviceMeal.updatedAt
-        self.updatedAt = deviceMeal.updatedAt
+        let timestamp = Date().timeIntervalSince1970
+        self.createdAt = timestamp
+        self.updatedAt = timestamp
         self.deletedAt = nil
        
         self.name = deviceMeal.name
         self.time = deviceMeal.time
         self.markedAsEatenAt = deviceMeal.markedAsEatenAt
         self.goalWorkoutMinutes = deviceMeal.goalWorkoutMinutes
+    }
+}
+
+extension Meal {
+    func update(with deviceMeal: PrepDataTypes.Meal, newDayId: Day.IDValue?, newGoalSetId: GoalSet.IDValue?) throws {
+        if let newDayId {
+            self.$day.id = newDayId
+        }
+        if let newGoalSetId {
+            self.$goalSet.id = newGoalSetId
+        }
+        self.name = deviceMeal.name
+        self.time = deviceMeal.time
+        if let markedAsEatenAt = deviceMeal.markedAsEatenAt {
+            self.markedAsEatenAt = markedAsEatenAt
+        } else {
+            self.markedAsEatenAt = nil
+        }
+        
+        self.updatedAt = Date().timeIntervalSince1970
     }
 }

@@ -269,9 +269,15 @@ extension SyncController {
                         newGoalSet = nil
                     }
 
-                    try updateServerMeal(serverMeal, with: deviceMeal, newDayId: newDay?.requireID(), newGoalSetId: newGoalSet?.requireID())
+                    try serverMeal.update(
+                        with: deviceMeal,
+                        newDayId: newDay?.requireID(),
+                        newGoalSetId: newGoalSet?.requireID()
+                    )
                     try await serverMeal.update(on: db)
+                    
                 } else {
+                    
                     /// If the meal doesn't exist, add it
                     guard let day = try await Day.find(deviceMeal.day.id, on: db) else {
                         throw ServerSyncError.dayNotFound
@@ -305,7 +311,7 @@ extension SyncController {
         do {
             for deviceFood in deviceFoods {
                 
-                /// Foods only ever get inserted or deleted—so we make sure it doesn't exist first
+                /// Foods only ever get inserted or deleted (never edited)—so we make sure it doesn't exist first
                 let serverFood = try await UserFood.find(deviceFood.id, on: db)
                 guard serverFood == nil else { continue }
                 
@@ -348,7 +354,6 @@ extension SyncController {
                         newGoalSet = nil
                     }
 
-//                    try updateServerDay(serverDay, with: deviceDay, newGoalSetId: newGoalSet?.requireID())
                     try serverDay.update(with: deviceDay, newGoalSetId: newGoalSet?.requireID())
                     try await serverDay.update(on: db)
                 } else {
@@ -396,23 +401,6 @@ extension SyncController {
         }
     }
     
-    func updateServerMeal(_ serverMeal: Meal, with deviceMeal: PrepDataTypes.Meal, newDayId: Day.IDValue?, newGoalSetId: GoalSet.IDValue?) throws {
-        if let newDayId {
-            serverMeal.$day.id = newDayId
-        }
-        if let newGoalSetId {
-            serverMeal.$goalSet.id = newGoalSetId
-        }
-        serverMeal.updatedAt = deviceMeal.updatedAt
-        serverMeal.name = deviceMeal.name
-        serverMeal.time = deviceMeal.time
-        if let markedAsEatenAt = deviceMeal.markedAsEatenAt {
-            serverMeal.markedAsEatenAt = markedAsEatenAt
-        } else {
-            serverMeal.markedAsEatenAt = nil
-        }
-    }
-
     func updateServerUser(_ serverUser: User, with deviceUser: PrepDataTypes.User) throws {
         
         if deviceUser.id != serverUser.id {

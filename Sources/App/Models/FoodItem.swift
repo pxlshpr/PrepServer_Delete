@@ -35,8 +35,9 @@ final class FoodItem: Model, Content {
         self.$parentUserFood.id = parentUserFoodId
         self.$meal.id = mealId
         
-        self.createdAt = deviceFoodItem.updatedAt
-        self.updatedAt = deviceFoodItem.updatedAt
+        let timestamp = Date().timeIntervalSince1970
+        self.createdAt = timestamp
+        self.updatedAt = timestamp
         self.deletedAt = nil
        
         self.amount = deviceFoodItem.amount
@@ -83,8 +84,7 @@ final class FoodItem: Model, Content {
         self.sortPosition = Int16(deviceFoodItem.sortPosition)
         self.markedAsEatenAt = deviceFoodItem.markedAsEatenAt
         
-        print("🤡 Updating FoodItem with \(deviceFoodItem.updatedAt)")
-        self.updatedAt = deviceFoodItem.updatedAt
+        self.updatedAt = Date().timeIntervalSince1970
     }
 
 }
