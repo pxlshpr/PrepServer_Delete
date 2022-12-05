@@ -20,7 +20,7 @@ extension SyncController {
         if let deviceUser = updates.user {
             user = try await updateUser(with: deviceUser, db: db)
         } else {
-            /// If an updated wasn't provided, look for the user for the `userId` included in the `SyncForm`
+            /// If an updated `User` wasn't provided, look for the user for the `userId` included in the `SyncForm`
             user = try await User.find(userId, on: db)
         }
         /// Before proceeding, make sure we have a `User` object
@@ -337,9 +337,6 @@ extension SyncController {
                 if let serverDay {
                     /// If the `GoalSet`'s don't match, fetch the new one and supply it to the `updateServerDay` function
                     let newGoalSet: GoalSet?
-                    print("🌈🌈🌈 Updating serverDay")
-                    print("    deviceDay.goalSet?.id: \(deviceDay.goalSet?.id)")
-                    print("    serverDay.goalSet?.id: \(serverDay.goalSet?.id)")
                     if let deviceGoalSetId = deviceDay.goalSet?.id,
                        serverDay.goalSet?.id != deviceGoalSetId
                     {
