@@ -394,7 +394,7 @@ extension PrepDataTypes.Meal {
             foodItems: [],
             syncStatus: .synced,
             updatedAt: serverMeal.updatedAt,
-            deletedAt: nil
+            deletedAt: serverMeal.deletedAt
         )
     }
 }
