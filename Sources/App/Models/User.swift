@@ -53,3 +53,21 @@ final class User: Model, Content {
     }
 }
 
+
+//MARK: - User → PrepDataTypes.User
+
+extension PrepDataTypes.User {
+    init?(from serverUser: User) {
+        guard let id = serverUser.id else {
+            return nil
+        }
+        self.init(
+            id: id,
+            cloudKitId: serverUser.cloudKitId,
+            units: serverUser.units,
+            bodyProfile: serverUser.bodyProfile,
+            syncStatus: .synced,
+            updatedAt: serverUser.updatedAt
+        )
+    }
+}

@@ -67,3 +67,38 @@ extension Meal {
         self.updatedAt = timestamp
     }
 }
+
+//MARK: - Meal → PrepDataTypes.Meal
+
+extension PrepDataTypes.Meal {
+    init?(from serverMeal: Meal) {
+        guard let id = serverMeal.id,
+              let day = PrepDataTypes.Day(from: serverMeal.day)
+        else {
+            return nil
+        }
+        
+        let goalSet: PrepDataTypes.GoalSet?
+        if let serverGoalSet = serverMeal.goalSet,
+           let deviceGoalSet = PrepDataTypes.GoalSet(from: serverGoalSet)
+        {
+            goalSet = deviceGoalSet
+        } else {
+            goalSet = nil
+        }
+
+        self.init(
+            id: id,
+            day: day,
+            name: serverMeal.name,
+            time: serverMeal.time,
+            markedAsEatenAt: serverMeal.markedAsEatenAt,
+            goalSet: goalSet,
+            goalWorkoutMinutes: serverMeal.goalWorkoutMinutes,
+            foodItems: [],
+            syncStatus: .synced,
+            updatedAt: serverMeal.updatedAt,
+            deletedAt: serverMeal.deletedAt
+        )
+    }
+}

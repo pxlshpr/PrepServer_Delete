@@ -43,3 +43,33 @@ extension Day {
         self.updatedAt = Date().timeIntervalSince1970
     }
 }
+
+
+//MARK: - Day → PrepDataTypes.Day
+
+extension PrepDataTypes.Day {
+    init?(from serverDay: Day) {
+        guard let id = serverDay.id else {
+            return nil
+        }
+        
+        let goalSet: PrepDataTypes.GoalSet?
+        if let serverGoalSet = serverDay.goalSet,
+           let deviceGoalSet = PrepDataTypes.GoalSet(from: serverGoalSet) {
+            goalSet = deviceGoalSet
+        } else {
+            goalSet = nil
+        }
+        
+        //TODO: Check that bodyProfile is being handled properly
+        self.init(
+            id: id,
+            calendarDayString: serverDay.calendarDayString,
+            goalSet: goalSet,
+            bodyProfile: serverDay.bodyProfile,
+            meals: [],
+            syncStatus: .synced,
+            updatedAt: serverDay.updatedAt
+        )
+    }
+}

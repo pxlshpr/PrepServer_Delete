@@ -43,3 +43,18 @@ final class Barcode: Model, Content {
         self.createdAt = Date().timeIntervalSince1970
     }
 }
+
+//MARK: - Barcode → PrepDataTypes.Barcode
+
+extension PrepDataTypes.Barcode {
+    init?(from serverBarcode: Barcode) {
+        guard let id = serverBarcode.id else {
+            return nil
+        }
+        self.init(
+            id: id,
+            payload: serverBarcode.payload,
+            symbology: serverBarcode.symbology
+        )
+    }
+}

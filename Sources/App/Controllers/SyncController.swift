@@ -97,13 +97,15 @@ enum ServerSyncError: Error {
     case newCloudKitIdReceivedForUser(String)
     case processUpdatesError(String? = nil)
     case couldNotGetUserIdForCloudKitId(String)
-    
+
+    case foodItemWithoutUserFoodOrPresetFood
+
     case userNotFound
     case dayNotFound
     case goalSetNotFound
     case foodNotFound    
     case mealNotFound
-    case foodItemWithoutUserFoodOrPresetFood
+    case foodItemNotFound
     case userFoodNotFound
     case presetFoodNotFound
     
