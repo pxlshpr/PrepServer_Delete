@@ -36,7 +36,7 @@ final class Meal: Model, Content {
         
         /// If this was deleted on device before being synced to the server, we create it
         /// with a timestamp as a soft-deleted model to begin with
-        if deviceMeal.deletedAt != nil {
+        if let deviceMeal = deviceMeal.deletedAt, deviceMeal > 0 {
             self.deletedAt = timestamp
         } else {
             self.deletedAt = nil
