@@ -5,12 +5,8 @@ import PrepDataTypes
 extension SyncController {
     
     func processUpdatedDeviceGoalSets(_ deviceGoalSets: [PrepDataTypes.GoalSet], user: User, on db: Database) async throws {
-        do {
-            for deviceGoalSet in deviceGoalSets {
-                try await processUpdatedDeviceGoalSet(deviceGoalSet, user: user, on: db)
-            }
-        } catch {
-            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        for deviceGoalSet in deviceGoalSets {
+            try await processUpdatedDeviceGoalSet(deviceGoalSet, user: user, on: db)
         }
     }
     

@@ -33,7 +33,14 @@ final class Meal: Model, Content {
         let timestamp = Date().timeIntervalSince1970
         self.createdAt = timestamp
         self.updatedAt = timestamp
-        self.deletedAt = nil
+        
+        /// If this was deleted on device before being synced to the server, we create it
+        /// with a timestamp as a soft-deleted model to begin with
+        if deviceMeal.deletedAt != nil {
+            self.deletedAt = timestamp
+        } else {
+            self.deletedAt = nil
+        }
        
         self.name = deviceMeal.name
         self.time = deviceMeal.time

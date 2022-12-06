@@ -5,12 +5,8 @@ import PrepDataTypes
 extension SyncController {
 
     func processUpdatedDeviceFoodItems(_ deviceFoodItems: [PrepDataTypes.FoodItem], on db: Database) async throws {
-        do {
-            for deviceFoodItem in deviceFoodItems {
-                try await processUpdatedDeviceFoodItem(deviceFoodItem, on: db)
-            }
-        } catch {
-            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        for deviceFoodItem in deviceFoodItems {
+            try await processUpdatedDeviceFoodItem(deviceFoodItem, on: db)
         }
     }
 

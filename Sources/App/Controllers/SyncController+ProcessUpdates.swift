@@ -87,96 +87,84 @@ extension SyncController {
     }
     
     func updateFoods(with deviceFoods: [PrepDataTypes.Food], user: User, db: Database) async throws {
-        do {
-            for deviceFood in deviceFoods {
-                
-                /// Foods only ever get inserted or deleted (never edited)—so we make sure it doesn't exist first
-                let serverFood = try await UserFood.find(deviceFood.id, on: db)
-                guard serverFood == nil else { continue }
-                
-                let userFood = UserFood(deviceFood: deviceFood, userId: try user.requireID())
-                try await userFood.save(on: db)
+        for deviceFood in deviceFoods {
+            
+            /// Foods only ever get inserted or deleted (never edited)—so we make sure it doesn't exist first
+            let serverFood = try await UserFood.find(deviceFood.id, on: db)
+            guard serverFood == nil else { continue }
+            
+            let userFood = UserFood(deviceFood: deviceFood, userId: try user.requireID())
+            try await userFood.save(on: db)
 
-                if let deviceBarcodes = deviceFood.barcodes {
-                    for deviceBarcode in deviceBarcodes {
-                        let barcode = Barcode(deviceBarcode: deviceBarcode, userFoodId: try userFood.requireID())
-                        try await barcode.save(on: db)
-                    }
+            if let deviceBarcodes = deviceFood.barcodes {
+                for deviceBarcode in deviceBarcodes {
+                    let barcode = Barcode(deviceBarcode: deviceBarcode, userFoodId: try userFood.requireID())
+                    try await barcode.save(on: db)
                 }
             }
-        } catch {
-            throw ServerSyncError.processUpdatesError(error.localizedDescription)
         }
     }
     
     func updateDays(with deviceDays: [PrepDataTypes.Day], user: User, db: Database) async throws {
-        do {
-            for deviceDay in deviceDays {
-                
-                let serverDay = try await Day.query(on: db)
-                    .filter(\.$id == deviceDay.id)
-                    .with(\.$goalSet)
-                    .first()
+        for deviceDay in deviceDays {
+            
+            let serverDay = try await Day.query(on: db)
+                .filter(\.$id == deviceDay.id)
+                .with(\.$goalSet)
+                .first()
 
-                /// If it exists, update it
-                if let serverDay {
-                    /// If the `GoalSet`'s don't match, fetch the new one and supply it to the `updateServerDay` function
-                    let newGoalSet: GoalSet?
-                    if let deviceGoalSetId = deviceDay.goalSet?.id,
-                       serverDay.goalSet?.id != deviceGoalSetId
-                    {
-                        guard let goalSet = try await GoalSet.find(deviceGoalSetId, on: db) else {
-                            throw ServerSyncError.goalSetNotFound
-                        }
-                        newGoalSet = goalSet
-                    } else {
-                        newGoalSet = nil
+            /// If it exists, update it
+            if let serverDay {
+                /// If the `GoalSet`'s don't match, fetch the new one and supply it to the `updateServerDay` function
+                let newGoalSet: GoalSet?
+                if let deviceGoalSetId = deviceDay.goalSet?.id,
+                   serverDay.goalSet?.id != deviceGoalSetId
+                {
+                    guard let goalSet = try await GoalSet.find(deviceGoalSetId, on: db) else {
+                        throw ServerSyncError.goalSetNotFound
                     }
-
-                    try serverDay.update(with: deviceDay, newGoalSetId: newGoalSet?.requireID())
-                    try await serverDay.update(on: db)
+                    newGoalSet = goalSet
                 } else {
-                    /// If the day doesn't exist, add it
-
-                    let goalSet: GoalSet?
-                    /// If we were provided a `GoalSet`, make sure that we can fetch it first before creating the `Day`
-                    if let goalSetId = deviceDay.goalSet?.id {
-                        guard let serverGoalSet = try await GoalSet.find(goalSetId, on: db) else {
-                            throw ServerSyncError.goalSetNotFound
-                        }
-                        goalSet = serverGoalSet
-                    } else {
-                        goalSet = nil
-                    }
-                    
-                    let day = Day(
-                        deviceDay: deviceDay,
-                        userId: try user.requireID(),
-                        goalSetId: try goalSet?.requireID()
-                    )
-                    try await day.save(on: db)
+                    newGoalSet = nil
                 }
+
+                try serverDay.update(with: deviceDay, newGoalSetId: newGoalSet?.requireID())
+                try await serverDay.update(on: db)
+            } else {
+                /// If the day doesn't exist, add it
+
+                let goalSet: GoalSet?
+                /// If we were provided a `GoalSet`, make sure that we can fetch it first before creating the `Day`
+                if let goalSetId = deviceDay.goalSet?.id {
+                    guard let serverGoalSet = try await GoalSet.find(goalSetId, on: db) else {
+                        throw ServerSyncError.goalSetNotFound
+                    }
+                    goalSet = serverGoalSet
+                } else {
+                    goalSet = nil
+                }
+                
+                let day = Day(
+                    deviceDay: deviceDay,
+                    userId: try user.requireID(),
+                    goalSetId: try goalSet?.requireID()
+                )
+                try await day.save(on: db)
             }
-        } catch {
-            throw ServerSyncError.processUpdatesError(error.localizedDescription)
         }
     }
     
     func updateUser(with deviceUser: PrepDataTypes.User, db: Database) async throws -> User {
-        do {
-            /// Find the user by checking either the `id` or the `cloudKitId` if it exists.
-            if let serverUser = try await user(forDeviceUser: deviceUser, db: db) {
-                try updateServerUser(serverUser, with: deviceUser)
-                try await serverUser.update(on: db)
-                return serverUser
-            } else {
-                /// If the user doesn't exist, add it
-                let user = User(deviceUser: deviceUser)
-                try await user.save(on: db)
-                return user
-            }
-        } catch {
-            throw ServerSyncError.processUpdatesError(error.localizedDescription)
+        /// Find the user by checking either the `id` or the `cloudKitId` if it exists.
+        if let serverUser = try await user(forDeviceUser: deviceUser, db: db) {
+            try updateServerUser(serverUser, with: deviceUser)
+            try await serverUser.update(on: db)
+            return serverUser
+        } else {
+            /// If the user doesn't exist, add it
+            let user = User(deviceUser: deviceUser)
+            try await user.save(on: db)
+            return user
         }
     }
     
